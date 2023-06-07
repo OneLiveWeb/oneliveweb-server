@@ -5,8 +5,8 @@ import java.util.zip.ZipOutputStream
 
 import org.apache.commons.io.IOUtils;
 import org.entermediadb.asset.MediaArchive
-import org.entermediadb.elasticsearch.SearchHitData
-import org.entermediadb.elasticsearch.searchers.ElasticListSearcher
+import org.entermediadb.opensearch.SearchHitData
+import org.entermediadb.opensearch.searchers.ElasticListSearcher
 import org.openedit.data.PropertyDetails
 import org.openedit.data.PropertyDetailsArchive
 import org.openedit.data.Searcher

@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.entermediadb.asset.BaseEnterMediaTest;
-import org.entermediadb.elasticsearch.searchers.BaseElasticSearcher;
+import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
 import org.openedit.Data;
 import org.openedit.hittracker.SearchQuery;
 import org.openedit.util.DateStorageUtil;

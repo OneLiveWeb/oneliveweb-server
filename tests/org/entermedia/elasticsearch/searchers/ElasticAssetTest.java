@@ -9,7 +9,7 @@ import org.entermediadb.asset.Asset;
 import org.entermediadb.asset.BaseEnterMediaTest;
 import org.entermediadb.asset.EnterMedia;
 import org.entermediadb.asset.search.BaseAssetSearcher;
-import org.entermediadb.elasticsearch.searchers.ElasticAssetDataConnector;
+import org.entermediadb.opensearch.searchers.ElasticAssetDataConnector;
 import org.junit.Test;
 import org.openedit.WebPageRequest;
 import org.openedit.data.Searcher;

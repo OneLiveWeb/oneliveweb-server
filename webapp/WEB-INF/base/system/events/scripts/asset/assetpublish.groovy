@@ -6,6 +6,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilder
 import org.elasticsearch.search.aggregations.AggregationBuilders
 import org.elasticsearch.search.aggregations.metrics.sum.SumBuilder
 import org.entermediadb.asset.MediaArchive
+import org.entermediadb.opensearch.SearchHitData
 import org.openedit.WebPageRequest
 import org.openedit.data.Searcher
 import org.openedit.hittracker.HitTracker
@@ -14,7 +15,6 @@ import java.util.List
 import org.openedit.Data
 import org.openedit.BaseWebPageRequest
 import java.util.ArrayList
-import org.entermediadb.elasticsearch.SearchHitData
 
 public void init(){
         log.info("Running assetpublish search "+catalogid);

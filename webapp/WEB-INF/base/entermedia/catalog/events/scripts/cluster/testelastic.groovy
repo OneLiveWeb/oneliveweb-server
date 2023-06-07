@@ -2,8 +2,8 @@ package cluster
 
 import org.elasticsearch.search.SearchHit
 import org.entermediadb.asset.MediaArchive
-import org.entermediadb.elasticsearch.ElasticNodeManager
-import org.entermediadb.elasticsearch.SearchHitData
+import org.entermediadb.opensearch.ElasticNodeManager
+import org.entermediadb.opensearch.SearchHitData
 import org.openedit.hittracker.HitTracker
 
 public void runit()

@@ -2,7 +2,7 @@ package asset;
 
 import org.entermediadb.asset.Asset
 import org.entermediadb.asset.MediaArchive
-import org.entermediadb.elasticsearch.categories.ElasticCategory
+import org.entermediadb.opensearch.categories.ElasticCategory
 import org.openedit.WebPageRequest
 import org.openedit.hittracker.HitTracker
 

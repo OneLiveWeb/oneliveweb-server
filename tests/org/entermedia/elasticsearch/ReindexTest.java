@@ -2,8 +2,8 @@ package org.entermedia.elasticsearch;
 
 import org.entermediadb.asset.BaseEnterMediaTest;
 import org.entermediadb.asset.search.BaseAssetSearcher;
-import org.entermediadb.elasticsearch.ElasticNodeManager;
-import org.entermediadb.elasticsearch.searchers.ElasticAssetDataConnector;
+import org.entermediadb.opensearch.ElasticNodeManager;
+import org.entermediadb.opensearch.searchers.ElasticAssetDataConnector;
 import org.openedit.Data;
 
 

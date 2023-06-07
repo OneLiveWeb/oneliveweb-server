@@ -17,8 +17,8 @@ import org.entermediadb.asset.MediaArchive
 import org.entermediadb.asset.util.CSVReader
 import org.entermediadb.asset.util.ImportFile
 import org.entermediadb.asset.util.Row
-import org.entermediadb.elasticsearch.ElasticNodeManager
-import org.entermediadb.elasticsearch.searchers.ElasticListSearcher
+import org.entermediadb.opensearch.ElasticNodeManager
+import org.entermediadb.opensearch.searchers.ElasticListSearcher
 import org.entermediadb.workspace.WorkspaceManager
 import org.openedit.Data
 import org.openedit.OpenEditException

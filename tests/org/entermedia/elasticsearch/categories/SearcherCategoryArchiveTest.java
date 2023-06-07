@@ -6,7 +6,7 @@ import java.util.List;
 import org.entermediadb.asset.BaseEnterMediaTest;
 import org.entermediadb.asset.Category;
 import org.entermediadb.asset.CategoryArchive;
-import org.entermediadb.elasticsearch.categories.ElasticCategoryArchive;
+import org.entermediadb.opensearch.categories.ElasticCategoryArchive;
 
 public class SearcherCategoryArchiveTest  extends BaseEnterMediaTest
 {

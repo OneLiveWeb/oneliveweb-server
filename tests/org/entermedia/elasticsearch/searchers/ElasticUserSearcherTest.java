@@ -3,7 +3,7 @@ package org.entermedia.elasticsearch.searchers;
 import java.util.Collection;
 
 import org.entermediadb.asset.BaseEnterMediaTest;
-import org.entermediadb.elasticsearch.searchers.ElasticUserSearcher;
+import org.entermediadb.opensearch.searchers.ElasticUserSearcher;
 import org.junit.Test;
 import org.openedit.Data;
 import org.openedit.hittracker.HitTracker;

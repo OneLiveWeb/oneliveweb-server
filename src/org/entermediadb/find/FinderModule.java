@@ -16,7 +16,7 @@ import org.apache.commons.logging.LogFactory;
 import org.entermediadb.asset.MediaArchive;
 import org.entermediadb.asset.autocomplete.LiveSuggestion;
 import org.entermediadb.asset.modules.BaseMediaModule;
-import org.entermediadb.elasticsearch.SearchHitData;
+import org.entermediadb.opensearch.SearchHitData;
 import org.openedit.Data;
 import org.openedit.MultiValued;
 import org.openedit.WebPageRequest;

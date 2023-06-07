@@ -3,7 +3,7 @@ package org.entermedia.elasticsearch.searchers;
 import org.entermediadb.asset.Asset;
 import org.entermediadb.asset.BaseEnterMediaTest;
 import org.entermediadb.asset.search.BaseAssetSearcher;
-import org.entermediadb.elasticsearch.searchers.BaseElasticSearcher;
+import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
 import org.junit.Test;
 import org.openedit.data.PropertyDetail;
 import org.openedit.hittracker.HitTracker;

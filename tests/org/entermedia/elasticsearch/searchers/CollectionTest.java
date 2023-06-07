@@ -6,7 +6,7 @@ import java.util.List;
 import org.entermediadb.asset.Asset;
 import org.entermediadb.asset.BaseEnterMediaTest;
 import org.entermediadb.asset.EnterMedia;
-import org.entermediadb.elasticsearch.searchers.BaseElasticSearcher;
+import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
 import org.entermediadb.projects.ProjectManager;
 import org.junit.Test;
 import org.openedit.Data;

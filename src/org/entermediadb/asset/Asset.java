@@ -19,7 +19,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.entermediadb.elasticsearch.SearchHitData;
+import org.entermediadb.opensearch.SearchHitData;
 import org.entermediadb.projects.LibraryCollection;
 import org.openedit.MultiValued;
 import org.openedit.data.PropertyDetail;

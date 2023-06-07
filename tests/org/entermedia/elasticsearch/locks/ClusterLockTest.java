@@ -6,9 +6,9 @@ import java.util.ConcurrentModificationException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.entermediadb.asset.cluster.ClusterLockManager;
-import org.entermediadb.elasticsearch.searchers.LockSearcher;
 import org.entermediadb.events.PathEventManager;
 import org.entermediadb.model.LockTest;
+import org.entermediadb.opensearch.searchers.LockSearcher;
 import org.openedit.locks.Lock;
 import org.openedit.util.ExecutorManager;
 

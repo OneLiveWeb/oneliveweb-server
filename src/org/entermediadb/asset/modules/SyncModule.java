@@ -12,7 +12,7 @@ import org.entermediadb.asset.Asset;
 import org.entermediadb.asset.MediaArchive;
 import org.entermediadb.asset.pull.PullManager;
 import org.entermediadb.asset.push.PushManager;
-import org.entermediadb.elasticsearch.ElasticNodeManager;
+import org.entermediadb.opensearch.ElasticNodeManager;
 import org.entermediadb.scripts.ScriptLogger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

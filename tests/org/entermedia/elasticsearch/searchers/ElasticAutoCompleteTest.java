@@ -1,7 +1,7 @@
 package org.entermedia.elasticsearch.searchers;
 
 import org.entermediadb.asset.BaseEnterMediaTest;
-import org.entermediadb.elasticsearch.searchers.ElasticAutoCompleteSearcher;
+import org.entermediadb.opensearch.searchers.ElasticAutoCompleteSearcher;
 import org.junit.Test;
 import org.openedit.Data;
 import org.openedit.hittracker.HitTracker;
