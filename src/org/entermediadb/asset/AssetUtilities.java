@@ -1,6 +1,7 @@
 package org.entermediadb.asset;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,10 +14,9 @@ import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.entermediadb.asset.scanner.MetaDataReader;
-import org.entermediadb.find.EntityManager;
 import org.entermediadb.projects.LibraryCollection;
 import org.openedit.Data;
-import org.openedit.MultiValued;
+import org.openedit.OpenEditException;
 import org.openedit.WebPageRequest;
 import org.openedit.data.Searcher;
 import org.openedit.hittracker.HitTracker;
@@ -487,22 +487,7 @@ public class AssetUtilities //TODO: Rename to AssetManager
 
 	public String createSourcePathFromMask(MediaArchive inArchive, User inUser, String fileName, String sourcepathmask, Map vals)
 	{
-		String sp = createSourcePathFromMask( inArchive,  "asset", null,  inUser,  fileName,  sourcepathmask,  vals);
-		return sp;
-	}
-	
-	public String createSourcePathFromMask(MediaArchive inArchive, String inModuleId, Data parentData, User inUser, String fileName, String sourcepathmask, Map vals)
-	{
-		if( parentData != null && !inModuleId.equals("asset"))
-		{
-			MultiValued module = (MultiValued)inArchive.getCachedData("module", inModuleId);
-			if( module.getBoolean("isentity"))
-			{
-				EntityManager manager = inArchive.getEntityManager();
-				manager.loadUploadSourcepath(module, parentData, inUser);
-			}
-			vals.put(inModuleId,parentData);
-		}
+
 		if (inUser != null)
 		{
 			vals.put("user", inUser);

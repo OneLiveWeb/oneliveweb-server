@@ -167,7 +167,7 @@ public class FfmpegVideoTranscoder extends BaseTranscoder
 		}
 		comm.add("-nostats");
 
-		setValue("threads", "2", inStructions, comm); // 0=auto, but leave some cores for the server's workload
+		setValue("threads", "0", inStructions, comm); // 0=auto, but leave some cores for the server's workload
 		setValue("b", null, inStructions, comm); // Legacy. Overall bitrate of the file, it might be better to specify it individually for video and audio streams.
 //video
 		setValue("vcodec", "libx264", inStructions, comm); // libvpx libvpx-vp9 libx265 vaapi_h264/265 vaapi_vp8/9 hw codecs if supported

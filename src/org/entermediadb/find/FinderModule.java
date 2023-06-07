@@ -595,10 +595,6 @@ public class FinderModule extends BaseMediaModule
 	{
 		MediaArchive archive = getMediaArchive(inReq);
 		Collection searchmodules = loadUserSearchTypes(inReq);
-		if( searchmodules == null || searchmodules.isEmpty())
-		{
-			return;
-		}
 		Searcher searcher = archive.getSearcher("modulesearch");
 		SearchQuery search = searcher.addStandardSearchTerms(inReq);
 
@@ -654,7 +650,6 @@ public class FinderModule extends BaseMediaModule
 		else
 		{
 			Collection children = selected.getValues("childentities");
-			//String searchingfor = inReq.findActionValue("searchallchildren");
 			for (Iterator iterator = modules.iterator(); iterator.hasNext();)
 			{
 				MultiValued amodule = (MultiValued) iterator.next();
@@ -670,7 +665,7 @@ public class FinderModule extends BaseMediaModule
 						searchmodules.add(amodule.getId());
 					}
 				}
-				else if(inModule == null)
+				else
 				{
 					searchmodules.add(amodule.getId());
 				}

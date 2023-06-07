@@ -266,18 +266,13 @@ public class FileUpload
 					}
 					else
 					{
-						String name = tmp.getName();
-						if( name.startsWith(".") )
+						if( tmp.getName().startsWith("."))
 						{
-							continue; //ignore .DS Store
-						}
-						if( name.contains("./") || name.contains(".\\") )
-						{
-							log.info("Skipping " + name);
 							continue; //ignore .DS Store
 						}
 						FileUploadItem foundUpload = new FileUploadItem();
 						foundUpload.setFileItem(tmp);
+						String name = tmp.getName();
 						if (name != null && name.contains("\\"))
 						{
 							name = name.substring(name.lastIndexOf("\\") + 1);

@@ -21,65 +21,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.elasticsearch.action.admin.indices.exists.types.TypesExistsRequest;
-import org.elasticsearch.action.admin.indices.flush.FlushRequest;
-import org.elasticsearch.action.admin.indices.flush.FlushResponse;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
-import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
-import org.elasticsearch.action.bulk.BackoffPolicy;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkProcessor;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.delete.DeleteRequestBuilder;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.search.ClearScrollRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.client.AdminClient;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.Requests;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.common.geo.GeoDistance;
-import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.common.unit.ByteSizeUnit;
-import org.elasticsearch.common.unit.ByteSizeValue;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.index.engine.VersionConflictEngineException;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.GeoDistanceQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.PrefixQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
-import org.elasticsearch.index.query.TermQueryBuilder;
-import org.elasticsearch.index.query.WildcardQueryBuilder;
-import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramBuilder;
-import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
-import org.elasticsearch.search.aggregations.bucket.histogram.Histogram.Order;
-import org.elasticsearch.search.aggregations.metrics.avg.AvgBuilder;
-import org.elasticsearch.search.aggregations.metrics.sum.SumBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
-import org.elasticsearch.transport.RemoteTransportException;
+
 import org.entermediadb.asset.MediaArchive;
 import org.entermediadb.asset.cluster.IdManager;
 import org.entermediadb.data.FullTextLoader;
@@ -97,6 +42,7 @@ import org.openedit.cache.CacheManager;
 import org.openedit.data.BaseSearcher;
 import org.openedit.data.PropertyDetail;
 import org.openedit.data.PropertyDetails;
+import org.openedit.data.QueryBuilder;
 import org.openedit.data.SearchData;
 import org.openedit.data.Searcher;
 import org.openedit.hittracker.ChildFilter;
@@ -111,6 +57,55 @@ import org.openedit.users.User;
 import org.openedit.util.DateStorageUtil;
 import org.openedit.util.IntCounter;
 import org.openedit.util.OutputFiller;
+import org.opensearch.action.admin.indices.flush.FlushRequest;
+import org.opensearch.action.admin.indices.flush.FlushResponse;
+import org.opensearch.action.admin.indices.mapping.get.GetMappingsRequest;
+import org.opensearch.action.admin.indices.mapping.get.GetMappingsResponse;
+import org.opensearch.action.admin.indices.mapping.put.PutMappingRequest;
+import org.opensearch.action.admin.indices.refresh.RefreshResponse;
+import org.opensearch.action.bulk.BackoffPolicy;
+import org.opensearch.action.bulk.BulkItemResponse;
+import org.opensearch.action.bulk.BulkProcessor;
+import org.opensearch.action.bulk.BulkRequest;
+import org.opensearch.action.bulk.BulkResponse;
+import org.opensearch.action.delete.DeleteRequest;
+import org.opensearch.action.delete.DeleteRequestBuilder;
+import org.opensearch.action.get.GetResponse;
+import org.opensearch.action.index.IndexRequest;
+import org.opensearch.action.index.IndexRequestBuilder;
+import org.opensearch.action.index.IndexResponse;
+import org.opensearch.action.search.ClearScrollRequest;
+import org.opensearch.action.search.SearchRequestBuilder;
+import org.opensearch.action.search.SearchType;
+import org.opensearch.client.AdminClient;
+import org.opensearch.client.Client;
+import org.opensearch.client.Requests;
+import org.opensearch.common.collect.ImmutableOpenMap;
+import org.opensearch.common.unit.ByteSizeUnit;
+import org.opensearch.common.unit.ByteSizeValue;
+import org.opensearch.common.unit.TimeValue;
+import org.opensearch.common.xcontent.XContentFactory;
+import org.opensearch.core.xcontent.XContentBuilder;
+import org.opensearch.index.engine.VersionConflictEngineException;
+import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.GeoDistanceQueryBuilder;
+import org.opensearch.index.query.MatchQueryBuilder;
+import org.opensearch.index.query.PrefixQueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.index.query.QueryStringQueryBuilder;
+import org.opensearch.index.query.TermQueryBuilder;
+import org.opensearch.index.query.WildcardQueryBuilder;
+import org.opensearch.search.aggregations.AbstractAggregationBuilder;
+import org.opensearch.search.aggregations.AggregationBuilder;
+import org.opensearch.search.aggregations.AggregationBuilders;
+import org.opensearch.search.aggregations.bucket.histogram.DateHistogramInterval;
+import org.opensearch.search.aggregations.metrics.AvgAggregationBuilder;
+import org.opensearch.search.aggregations.metrics.SumAggregationBuilder;
+import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder.Order;
+import org.opensearch.search.sort.FieldSortBuilder;
+import org.opensearch.search.sort.SortBuilders;
+import org.opensearch.transport.RemoteTransportException;
 
 import groovy.json.JsonOutput;
 
@@ -137,6 +132,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 	protected boolean fieldIncludeFullText = true;
 	protected OutputFiller fieldFiller;
 	protected PageManager fieldPageManager;
+	
 
 	protected boolean fieldOptimizeReindex = true;
 	public boolean isOptimizeReindex()
@@ -401,8 +397,11 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			PropertyDetail detail = (PropertyDetail) iterator.next();
 			if (detail.isHighlight())
 			{
-				search.addHighlightedField(detail.getId(), 180);
+				HighlightBuilder highlightBuilder = new HighlightBuilder();
+
 				
+				highlightBuilder.field(detail.getId(), 180);      
+				search.highlighter(highlightBuilder);
 			}
 		}
 
@@ -422,6 +421,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			ElasticSearchQuery q = (ElasticSearchQuery) inQuery;
 			if(q.getAggregationJson() != null) {
 				inSearch.setAggregations(q.getAggregationJson().getBytes());
+				
 				added = true;
 			}			
 			return added;
@@ -457,11 +457,11 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 
 			else if (detail.isNumber())
 			{
-				SumBuilder b = new SumBuilder(detail.getId() + "_sum");
+				SumAggregationBuilder b = new SumAggregationBuilder(detail.getId() + "_sum");
 				b.field(detail.getId());
 				inSearch.addAggregation(b);
 
-				AvgBuilder avg = new AvgBuilder(detail.getId() + "_avg");
+				AvgAggregationBuilder avg = new AvgAggregationBuilder(detail.getId() + "_avg");
 				avg.field(detail.getId());
 
 			}
@@ -2435,6 +2435,11 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 
 				if (detail == null && !propid.equals("description") && !propid.contains("_int") && !propid.equals("emrecordstatus") && !propid.equals("recordmodificationdate") && !propid.equals("mastereditclusterid"))
 				{
+					if(getPageManager().getPage("/prevent.html").exists()) {
+						//make this a page prop or something.  Local testing.
+						
+						throw new OpenEditException(getSearchType() + " could not put mapping on data " + propid + " rowid=" + inData.getId());
+					}
 					detail = getPropertyDetailsArchive().createDetail(propid, propid);
 					detail.setDeleted(false);
 					//setType(detail);
@@ -2544,7 +2549,10 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 							throw new OpenEditException(inData.getId() + " / " + detail.getId() + " Data was not a collection or a string " + value.getClass());
 						}
 					}
-					inContent.field(key, value); //This seems to map Long data types to Integer when they are read again
+					Collection vals = (Collection) value;
+					inContent.field(key, value); //This seems to map Long data types to Integer when they are read again	
+					
+					
 				}
 				else if (detail.isDate())
 				{
