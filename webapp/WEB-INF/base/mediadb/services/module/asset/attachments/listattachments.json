@@ -1,12 +1,17 @@
+#set ($status = "ok")
 {
+ "response":{
+     "status":"$status"
+ },
  "sessionid":"$!attachments.sessionId",
  "page":"$!attachments.page",
  "pages":"$!attachments.totalPages",
  "totalsize":"$!attachments.size()",
  "primaryfile":"$!asset.getMediaName()",
+ "id":"$!asset.id",
  "attachments":[
   #foreach( $hit in $attachments )
-	#if( $velocityCount != 1), #end 
+	#if( ${foreach.count} != 1), #end 
 	{ 
 		"id":"$hit.id" ,
 		"name":"$hit.name" ,		

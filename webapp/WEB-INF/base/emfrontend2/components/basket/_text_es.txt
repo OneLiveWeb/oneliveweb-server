@@ -1,0 +1,10 @@
+#
+#Thu Mar 28 09:37:28 CST 2019
+assets=bienes
+Add\ To\ Basket=A\u00F1adir al carrito
+Basket=cesta
++=+
+Remove\ From\ Basket=Eliminar de la cesta
+asset=activo
+-=-
+Cart=Carro

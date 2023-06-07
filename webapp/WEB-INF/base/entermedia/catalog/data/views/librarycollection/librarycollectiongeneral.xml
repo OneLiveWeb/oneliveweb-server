@@ -2,9 +2,9 @@
 
 <root>
   <property id="name" />
-  <property id="deliverydate" />
-  <property id="notes" />
+  <property id="library" />
   <property id="owner" />
-  <property id="addnotifypolicy" />
-  
+  <property id="rootcategory" />
+  <property id="featuredcollection" />
+  <property id="collectionimage" />
 </root>

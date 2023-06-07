@@ -9,6 +9,7 @@
 	<property name="wardir" location="${build}/wartmp"/>
 	<property name="webinf" location="WEB-INF"/>
 	<property name="workdir" location="${build}/unpacked" />
+	<property name="remotehome" value="http://dev.entermediasoftware.com/jenkins/job" />
 
 	<target name="clean">
 		<!-- do nothing -->
@@ -17,7 +18,7 @@
 	<target name="update-dependencies" depends="clean">
 		<delete dir="${build}"/>
 		<mkdir dir="${build}"/>
-		<get src="http://dev.entermediasoftware.com/jenkins/job/@BRANCH@entermedia-server/lastSuccessfulBuild/artifact/deploy/ROOT.war" dest="${build}/ROOT.war" />	
+		<get src="${remotehome}/@BRANCH@entermedia-server/lastSuccessfulBuild/artifact/deploy/ROOT.war" dest="${build}/ROOT.war" />	
 	</target>
 
 	<target name="unwar" depends="update-dependencies">
@@ -37,7 +38,10 @@
 			<fileset dir="../WEB-INF/base/mediadb" />
 			<fileset dir="../WEB-INF/base/entermedia/" />
 			<fileset dir="../WEB-INF/base/system/" />
+			<fileset dir="../WEB-INF/base/reporting/" />
+
 			<fileset dir="../WEB-INF/base/emfrontend/" />
+			<fileset dir="../WEB-INF/base/emfrontend2/" />
 			<fileset dir="../WEB-INF/base/modulefrontend/" />
 			<fileset dir="../WEB-INF/base/sfentermedia/" />
 			<fileset dir="../WEB-INF/base/themes/baseem" />
@@ -49,6 +53,10 @@
 		<copy todir="../WEB-INF/base/manager" preservelastmodified="true" overwrite="true">
 			<fileset dir="${workdir}/WEB-INF/base/manager" />
 		</copy>
+		<copy todir="../WEB-INF/base/reporting" preservelastmodified="true" overwrite="true">
+					<fileset dir="${workdir}/WEB-INF/base/reporting" />
+				</copy>
+
 
 		<copy todir="../WEB-INF/base/entermedia" preservelastmodified="true" overwrite="true">
 			<fileset dir="${workdir}/WEB-INF/base/entermedia" />
@@ -56,6 +64,10 @@
 
 		<copy todir="../WEB-INF/base/emfrontend" preservelastmodified="true" overwrite="true">
 			<fileset dir="${workdir}/WEB-INF/base/emfrontend" />
+		</copy>
+
+		<copy todir="../WEB-INF/base/emfrontend2" preservelastmodified="true" overwrite="true">
+			<fileset dir="${workdir}/WEB-INF/base/emfrontend2" />
 		</copy>
 
 		<copy todir="../WEB-INF/base/modulefrontend" preservelastmodified="true" overwrite="true">
@@ -76,6 +88,10 @@
 
 	  	<copy todir="../WEB-INF/base/themes" preservelastmodified="true" overwrite="true">
 	  		<fileset dir="${workdir}/WEB-INF/base/themes" />
+	  	</copy>
+		
+		<copy todir="../WEB-INF/" preservelastmodified="true" overwrite="true">
+	  		<fileset dir="${workdir}/WEB-INF/" includes="version.txt" />
 	  	</copy>
 
 		<delete quiet="true">
@@ -123,16 +139,13 @@
 	      <fileset dir="./lib" includes="velocity-**.jar"/>
 	    </delete>
 	    <delete>
-	      <fileset dir="./lib" includes="commons-fileupload-**.jar"/>
-	    </delete>
-	    <delete>
-	      <fileset dir="./lib" includes="commons-net-**.jar"/>
-	    </delete>
-	    <delete>
-	      <fileset dir="./lib" includes="commons-logging-**.jar"/>
+	      <fileset dir="./lib" includes="commons-**.jar"/>
 	    </delete>
 	    <delete>
 	      <fileset dir="./lib" includes="log4j**.jar"/>
+	    </delete>
+	    <delete>
+	      <fileset dir="./lib" includes="slf4j**.jar"/>
 	    </delete>
 	    <delete>
 	      <fileset dir="./lib" includes="dom4j**.jar"/>
@@ -155,6 +168,9 @@
 	  	<delete>
 	  	  	  <fileset dir="./lib" includes="mp4parser**.jar"/>
 	  	</delete>
+		<delete>
+	  	  	  <fileset dir="./lib" includes="isoparser**.jar"/>
+	  	</delete>	  	
 	  	<delete>
 	  	  	  <fileset dir="./lib" includes="aopalliance**.jar"/>
 	  	</delete>
@@ -164,6 +180,15 @@
 	  	<delete>
 	  	  	  <fileset dir="./lib" includes="guava**.jar"/>
 	  	</delete>
+	  	<delete>
+	  	  	  <fileset dir="./lib" includes="pdfbox**.jar"/>
+	  	</delete>
+	  	<delete>
+	  	  	  <fileset dir="./lib" includes="PDFBox**.jar"/>
+	  	</delete>	
+	  	<delete>
+	  	  	  <fileset dir="./lib" includes="FontBox**.jar"/>
+	  	</delete>  	
 	    <delete>
 	      <fileset dir="./lib" includes="http**.jar"/>
 	    </delete>

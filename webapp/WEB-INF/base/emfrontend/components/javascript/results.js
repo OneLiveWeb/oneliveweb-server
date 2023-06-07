@@ -15,8 +15,13 @@ jQuery(document).ready(function(url,params)
 		var select = $(this);
 		select.on("change",function() 
 		{
-			var href = home  +  "/components/results/changeresultview.html?oemaxlevel=1";
-
+			var originalhitsperpage = select.data("hitsperpage");
+			if(originalhitsperpage){
+				var href = home  +  "/components/results/changeresultview.html?oemaxlevel=1&cache=false&hitsperpage=" + originalhitsperpage;
+			}
+			else{
+				var href = home  +  "/components/results/changeresultview.html?oemaxlevel=1";
+			}
 			var args = { hitssessionid: select.data("hitssessionid") ,
 						 searchtype:  select.data("searchtype") ,
 						 page:  select.data("page") ,
@@ -39,24 +44,23 @@ jQuery(document).ready(function(url,params)
 		
 	});
 		
-	jQuery("input.selectionbox").livequery( function() 
+	jQuery("input.selectionbox").livequery("change", function(e) 
 	{
-		jQuery(this).change(function() 
-		{
-			var hitssessionid = $('#resultsdiv').data('hitssessionid');
-			var dataid = jQuery(this).data('dataid');
-			refreshdiv( home + "/components/results/toggle.html", {dataid:dataid, searchtype: "asset", hitssessionid: hitssessionid });
-			if(typeof(refreshSelections) != 'undefined'){
-				refreshSelections();
-			}
+		var hitssessionid = $('#resultsdiv').data('hitssessionid');
+		var searchtype = $('#resultsdiv').data('searchtype');
 		
-		});
+		//console.log("searchtype" + searchtype);
+		var dataid = jQuery(this).data('dataid');
+		refreshdiv( home + "/components/results/toggle.html", {dataid:dataid, searchtype: searchtype, hitssessionid: hitssessionid });
+		if(typeof(refreshSelections) != 'undefined'){
+			refreshSelections();
+		}
 	});
 	
 	jQuery("a.selectpage").livequery( 'click', function() 
 	{
-		jQuery('input[name=pagetoggle]').attr('checked','checked');
-		jQuery('.selectionbox').attr('checked','checked');
+		jQuery('input[name=pagetoggle]').prop('checked',true);
+		jQuery('.selectionbox').prop('checked',true);
 		if(typeof(refreshSelections) != 'undefined'){
 			refreshSelections();
 		}
@@ -68,8 +72,8 @@ jQuery(document).ready(function(url,params)
 		//Uses ajax
 	jQuery("a.deselectpage").livequery( 'click', function() 
 	{
-		jQuery('input[name=pagetoggle]').removeAttr('checked');
-		jQuery('.selectionbox').removeAttr('checked'); //Not firing the page
+		jQuery('input[name=pagetoggle]').removeProp('checked');
+		jQuery('.selectionbox').removeProp('checked'); //Not firing the page
 	//	jQuery("#select-dropdown-open").click();
 		if(typeof(refreshSelections) != 'undefined'){
 			refreshSelections();
@@ -87,12 +91,12 @@ jQuery(document).ready(function(url,params)
 		   if(status)
 		   {
 			   refreshdiv( home + apphome + "/components/results/togglepage.html", {oemaxlevel:1, hitssessionid: hitssessionid, action:"page"});
-			   jQuery('.selectionbox').attr('checked','checked');
+			   jQuery('.selectionbox').prop('checked',true);
 	       }
 	       else
 	       {
 	    	   refreshdiv( home + apphome + "/components/results/togglepage.html", {oemaxlevel:1, hitssessionid: hitssessionid, action:"pagenone"});         
-	   	       jQuery('.selectionbox').removeAttr('checked');  
+	   	       jQuery('.selectionbox').removeProp('checked');  
 	   	   }
 		   //jQuery("#select-dropdown-open").click();
 	});
@@ -129,39 +133,54 @@ jQuery(document).ready(function(url,params)
 	overlayResize = function()
 	{
 		var img = $("#hiddenoverlay #main-media");
-		var avwidth = $(window).width() - 200;
+		var avwidth = $(window).width();
+		var wheight = $(window).height();
+		var overlay = $("#hiddenoverlay");
+		overlay.height(wheight);
+		overlay.width(avwidth);
+		
 		$("#hiddenoverlay .playerarea").width(avwidth);
 		var w = img.data("width");
 		if(!isNaN(w) && w != "")
 		{
 			w = parseInt(w);
 			var h = parseInt(img.data("height"));	
-			var newh = Math.max($(window).height(),Math.floor( avwidth * h / w ));
+			var newh = Math.floor( avwidth * h / w );
 			var neww = Math.max(avwidth, Math.floor( avwidth * w / h ));
-			if( neww > avwidth ) //larger of the two
-			{	
-				img.width(avwidth);
-				img.css("height", "auto");
+			img.width(avwidth);
+			img.css("height", "auto");
+			//Only if limited by height
+			var avheight = $(window).height() - 35;
+
+			if( newh > avheight )
+			{ 
+				img.height(avheight);
+				img.css("margin-top","0px");
+				//var neww2 = Math.floor( avheight * w / h );
+				//img.width(neww2);
+				img.css("width", "auto");
+			}
+			else
+			{
+				var remaining = avheight - newh;
 				
-				//Only if limited by height
-				var remaining = $(window).height() - newh;
 				if ( remaining > 0 )
 				{
 					remaining = remaining/2;
 					img.css("margin-top",remaining + "px");
 				}	
+				else
+				{
+					img.css("margin-top","0px");
+				}	
 			}
-			else
-			{
-				img.height($(window).height());
-				img.css("margin-top","0px");
-				img.css("width", "auto");
-			}			
+			
 		}
 		else
 		{
 			img.width(avwidth);
 			img.css("height", "auto");
+			img.css("margin-top","0px");
 		}
 	}
 	$(window).resize(function(){
@@ -183,29 +202,74 @@ jQuery(document).ready(function(url,params)
 			if( inData == "")
 			{
 				$(inSpan).css("color","#333");
+				$(inSpan).css("visibility","hidden");
 			}
 			else
 			{
 				$(inSpan).css("color","rgb(200,200,200)");
+				$(inSpan).css("visibility","visible");
 			}
 	}
-	showOverlay = function(assetid)
+	
+	hideOverlayDiv = function(inOverlay)
+	{
+		stopautoscroll = false;
+		inOverlay.hide();
+		var lastscroll = getOverlay().data("lastscroll");
+		$(window).scrollTop( lastscroll );
+	}
+	
+	showOverlayDiv = function(inOverlay)
+	{
+		stopautoscroll = true;
+		inOverlay.show();
+		var lastscroll = $(window).scrollTop();
+		getOverlay().data("lastscroll",lastscroll);
+	}
+	
+	
+	
+	showAsset = function(assetid,pagenum)
 	{
 		var hidden = getOverlay();
-		var currentasset = $("#main-media-viewer");
-		
-		var href = home + "/components/mediaviewer/fullscreen/currentasset.html";
-		var hitssessionid = jQuery('#resultsdiv').data("hitssessionid");
-		jQuery.get(href, {playerareawidth: $(window).width() - 200, assetid:assetid,hitssessionid:hitssessionid,oemaxlevel:1}, function(data) 
+		var grid = $(".masonry-grid");
+		var link = grid.data("assettemplate");
+		if( link == null )
 		{
-			currentasset.replaceWith(data);
+			 link = home + "/components/mediaviewer/fullscreen/currentasset.html";	
+		}
+		
+		var hitssessionid = jQuery('#resultsdiv').data("hitssessionid");
+		var params = {embed:true,assetid:assetid,hitssessionid:hitssessionid,oemaxlevel:1};
+		if( pagenum != null )
+		{
+			params.pagenum = pagenum;
+		}
+		jQuery.get(link, params, function(data) 
+		{
+			
+			showOverlayDiv(hidden);
+			
+			var container = $("#main-media-container");
+			container.replaceWith(data);
 			overlayResize();
-			var div = $("#main-media-viewer" );
+			var div = $("#main-media-viewer");
+			//center image
+			var tocenter = div.find("#mainimage");
+			var tocenterparent = tocenter.parent();
+			var tocenterw = tocenter.width();
+			var tocenterparentw = tocenterparent.width();
+			if ($.isNumeric(tocenterparentw) && $.isNumeric(tocenterw) && tocenterparentw>tocenterw) {
+			var centered = (tocenterparentw-tocenterw)/2;
+			tocenter.css("left",centered+"px");
+			}
 			var id = div.data("previous");
-			enable(id,"span.glyphicon-triangle-left");
+			enable(id,".goleftclick span");
 			id = div.data("next");
-			enable(id,"span.glyphicon-triangle-right");
-			hidden.show();
+			enable(id,".gorightclick span");
+		    $(document).trigger("domchanged");
+			$(window).trigger( "resize" );
+
 		});
 	}
 	
@@ -219,7 +283,7 @@ jQuery(document).ready(function(url,params)
 			}
 			switch(e.which) {
 		        case 27: // esc
-		       	 getOverlay().hide();
+		       	 hideOverlayDiv(getOverlay());
 		        break;
 			    
 			    default: return; 
@@ -234,24 +298,28 @@ jQuery(document).ready(function(url,params)
 		        case 37: // left
 					var div = $("#main-media-viewer" );
 		        	var id = div.data("previous");
-		        	showOverlay(id);		        	
+		        	if( id )
+		        	{
+			        	//showOverlayDiv(id);
+			        	showAsset(id);
+			        }		        	
 		        break;
 		
 				case 39: // right
-		        	var div = $("#main-media-viewer" );
+					var div = $("#main-media-viewer" );
 		        	var id = div.data("next");
-		        	showOverlay(id);
+		        	if( id )
+		        	{
+			        	showAsset(id);
+			        }	
 		        break;
 		        
 		        // TODO: background window.scrollTo the .masonry-grid-cell we view, so we can reload hits
 		        
 		        case 27: // esc
-		         getOverlay().hide();
+		         	 hideOverlayDiv(getOverlay());
 		        break;
 		
-		       
-		        //case : // space //toggle slideshow
-		        //break;
 		
 		        default: return; // exit this handler for other keys
 		    }
@@ -263,9 +331,15 @@ jQuery(document).ready(function(url,params)
 		var hidden = $("#hiddenoverlay");
 		if( hidden.length == 0 )
 		{
-			var href = home + "/components/mediaviewer/fullscreen/index.html";
+			var grid = $(".masonry-grid");
+			var href = grid.data("viewertemplate");
+			if( href == null )
+			{
+				 href = home + "/components/mediaviewer/fullscreen/index.html";	
+			}
+			
 			jQuery.ajax({ url:href,async: false, data: {oemaxlevel:1}, success: function(data) {
-				$('body').append(data);
+				$('body').prepend(data);
 				hidden = $("#hiddenoverlay");
 				initKeyBindings(hidden);
 			}
@@ -275,27 +349,94 @@ jQuery(document).ready(function(url,params)
 		return hidden;
 		
 	}
-	jQuery('div.goleftlick .glyphicon-triangle-left').livequery('click',function(e)
+	
+	jQuery('#jumptoform .jumpto-left').livequery('click',function(e)
+	{
+		e.preventDefault();
+		var input = $("#jumptoform #pagejumper" );
+		var current = input.val();
+		current = parseInt(current);
+		current--;
+		if( current > 0 )
+		{
+			input.val(current);
+			$("#jumptoform").submit();
+		}
+		else
+		{
+			jQuery('#jumptoform .jumpto-left').addClass("invisible");
+		}	
+
+		jQuery('#jumptoform .jumpto-right').removeClass("invisible");
+	});
+
+
+	jQuery('#jumptoform .jumpto-right').livequery('click',function(e)
+	{
+		e.preventDefault();
+		var input = $("#jumptoform #pagejumper" );
+		var current = input.val();
+		current = parseInt(current);
+		current++;
+		var totalpages = $("#jumptoform").data("totalpages");
+		totalpages = parseInt(totalpages);
+		if( current <= totalpages )
+		{
+			input.val(current);
+			$("#jumptoform").submit();
+		}	
+		if( current >= totalpages )
+		{
+			jQuery('#jumptoform .jumpto-right').addClass("invisible");
+		}	
+		jQuery('#jumptoform .jumpto-left').removeClass("invisible");
+		
+	});
+	
+	jQuery('div.goleftclick .glyphicon-triangle-left').livequery('click',function(e)
 	{
 		e.preventDefault();
 		var div = $("#main-media-viewer" );
 		var id = div.data("previous");
-		showOverlay(id);
+		showAsset(id);
 
 	});
 	
-	jQuery('div.gorightlick .glyphicon-triangle-right').livequery('click',function(e)
+	jQuery('div.gorightclick .glyphicon-triangle-right').livequery('click',function(e)
 	{
 		e.preventDefault();
 		var div = $("#main-media-viewer" );
 		var id = div.data("next");
-		showOverlay(id);
+		showAsset(id);
 	});
-	jQuery('div.masonry-grid a.playerclink').livequery('click',function(e)
+	
+	$("#main-media").livequery("swipeleft",function(){
+		
+		var div = $("#main-media-viewer" );
+		var id = div.data("next");
+		if( id ) 
+		{
+			showAsset(id);
+		}	
+		});
+	$("#main-media").livequery("swiperight",function(){
+	
+		var div = $("#main-media-viewer" );
+		var id = div.data("previous");
+		if( id ) 
+		{
+			showAsset(id);
+		}	
+		});
+
+	jQuery('a.stackedplayer').livequery('click',function(e)
 	{
 		e.preventDefault();
 		var link = $(this);
-		showOverlay(link.parent(".masonry-grid-cell").data("assetid"));
+		var assetid = link.data("assetid");
+		var pagenum = link.data("pagenum"); 
+		showAsset(assetid,pagenum);
+		return false;
 	});
 	
 	
@@ -303,8 +444,7 @@ jQuery(document).ready(function(url,params)
 	$("#hiddenoverlay .overlay-close").livequery('click',function(e)
 	{	
 		e.preventDefault();
-		var hidden = $("#hiddenoverlay");
-		hidden.hide();
+		hideOverlayDiv(getOverlay());
 	});
 	
 	$("#hiddenoverlay .overlay-popup span").livequery('click',function(e)
@@ -317,16 +457,69 @@ jQuery(document).ready(function(url,params)
 				
 			});
 	
-	$(window).on('scroll',function() 
+	document.addEventListener('touchmove', function(e) 
+	{
+		//console.log("touchmove event");
+		checkScroll();
+	});
+	
+	$(window).on('scroll',function(e) 
+	{
+		//console.log("scroll event *");
+		checkScroll();
+	});
+	$(document).on('domchanged',function() 
 	{
 		checkScroll();
 	});
 	//END Gallery stuff
 	
+	$('select.addremovecolumns').livequery("change",function()
+	{
+		var selectedval = $(this).val();
+        var resultsdiv = $(this).closest("#resultsdiv");
+		var options = resultsdiv.data();
+		var searchhome = resultsdiv.data('searchhome');
+		jQuery.get(searchhome + "/addremovecolumns.html?oemaxlevel=1&editheader=true&addcolumn=" + selectedval,options, function(data) 
+		{	
+			resultsdiv.html(data);
+		});
+	});
+
+	
+	$('th.sortable').livequery('click', function(){
+            var id = $(this).attr('sortby');
+            var resultsarea = "#resultsdiv";
+            
+            var resultsdiv = $(this).closest("#resultsdiv");
+			var searchhome = resultsdiv.data('searchhome');
+			var sessionid = resultsdiv.data("hitssessionid");
+			var searchtype = resultsdiv.data("searchtype");
+            
+            if ( $(this).hasClass('currentsort') ) {
+                if ( $(this).hasClass('up') ) {
+                    jQuery(resultsdiv).load( searchhome + '/columnsort.html?oemaxlevel=1&searchtype=' + searchtype + '&hitssessionid=' + sessionid + '&sortby=' + id + 'Down');
+                } else {
+                    jQuery(resultsdiv).load( searchhome + '/columnsort.html?oemaxlevel=1&searchtype=' + searchtype + '&hitssessionid=' + sessionid + '&sortby=' + id + 'Up');
+                }
+            } else {
+                $('th.sortable').removeClass('currentsort');
+                $(this).addClass('currentsort');
+                jQuery(resultsdiv).load( searchhome + '/columnsort.html?oemaxlevel=1&searchtype=' + searchtype + '&hitssessionid=' + sessionid + '&sortby=' + id + 'Down');
+            }
+        }
+    );
+	
 	$(window).on('resize',function(){
 		gridResize();
 	});
+	
 	gridResize();
+	window.addEventListener('load', 
+	  function() { 
+	    	gridResize();
+	  }, false);
+	
 });        //document ready
         
 
@@ -345,51 +538,88 @@ togglehits =  function(action)
        return false;       
 
 }
-var loadingscroll = false;
+var stopautoscroll = false;
 
 checkScroll = function()
 {
-		
-		if( loadingscroll )
+		if( stopautoscroll )
 		{
+			//ignore scrolls
+			if( getOverlay().is(":visible") )
+			{
+				var lastscroll = getOverlay().data("lastscroll");
+				var currentscroll = $(window).scrollTop();
+				if( Math.abs(lastscroll -  currentscroll) > 50 )
+				{
+					$(window).scrollTop( lastscroll );
+				}
+			}
 			return;
 		}
-		//are we near the end? Are there more pages?
-  		var totalHeight = document.body.offsetHeight;
-  		var visibleHeight = document.documentElement.clientHeight;
-		//var attop = $(window).scrollTop() < $(window).height(); //past one entire window
-		var atbottom = ($(window).scrollTop() + (visibleHeight + 200)) >= totalHeight ; //is the scrolltop plus the visible equal to the total height?
-		if(	!atbottom )
-	    {
-		  return;
-		}
-		var gallery= $("#resultsdiv");
-		var lastcell = $(".masonry-grid-cell",gallery).last();
+		
+		//No results?
+		var resultsdiv= $("#resultsdiv");
+		var lastcell = $(".masonry-grid-cell",resultsdiv).last();
 		 if( lastcell.length == 0 )
 		 {
 		 	return;
 		 }
-		 
-	    var page = parseInt(gallery.data("pagenum"));   
-	    var total = parseInt(gallery.data("totalpages"));
-		 console.log("checking scroll" + loadingscroll + " page " + page + " of " + total);
-	    if( total > page)
+		
+		
+		//are we near the end? Are there more pages?
+  		var visibleHeight = $(window).height();
+  		var totalHeight = $(document).height();
+
+
+	    var page = parseInt(resultsdiv.data("pagenum"));   
+	    var total = parseInt(resultsdiv.data("totalpages"));
+		//console.log("checking scroll " + stopautoscroll + " page " + page + " of " + total);
+	    if( page == total)
 	    {
-		   loadingscroll = true; 
-		   var session = gallery.data("hitssessionid");
+			return;
+		}
+
+  		//console.log($(window).scrollTop() + " + " +   (visibleHeight*2 + 500) + ">=" + totalHeight); 
+		var atbottom = ($(window).scrollTop() + (visibleHeight*2 + 500)) >= totalHeight ; //is the scrolltop plus the visible equal to the total height?
+		if(	!atbottom )
+	    {
+	    	//console.log("Not yet within 500px");
+		  return;
+		}
+		 
+		   stopautoscroll = true; 
+		   var session = resultsdiv.data("hitssessionid");
 		   page = page + 1;
-		   gallery.data("pagenum",page);
-		   console.log("loading page: " + page);
+		   resultsdiv.data("pagenum",page);
 		   var home = $('#application').data('home') + $('#application').data('apphome');
-		   jQuery.get(home + "/components/results/stackedgallery.html", {hitssessionid:session,page:page,oemaxlevel:"1"}, function(data) 
-		   {
-			   var jdata = $(data);
-			   var code = $(".masonry-grid",jdata).html();
-			   $(".masonry-grid",gallery).append(code);
-			   gridResize();
-			   loadingscroll = false; 
+		   console.log("Loading page: #" + page +" - " + home);
+		   
+		   var link = home + "/components/results/stackedgallery.html";
+	//			   	async: false,
+
+		   jQuery.ajax({
+			   	url: link,
+			   	xhrFields: {
+			      withCredentials: true
+			   	},
+			   	cache: false,
+			   	data: {hitssessionid:session,page:page,oemaxlevel:"1"},
+				success: function(data) 
+			   	{
+				   var jdata = $(data);
+				   var code = $(".masonry-grid",jdata).html();
+				   $(".masonry-grid",resultsdiv).append(code);
+				   gridResize();
+				   $(document).trigger("domchanged");
+				   stopautoscroll = false; 
+				   //Once that is all done loading we can see if we need a second page?
+			   	   //console.log( page + " Loaded get some more?" + getOverlay().is(':hidden') );
+				   if( getOverlay().is(':hidden') )
+				   {
+				   		checkScroll(); //Might need to load up two pages worth
+				   }
+				}
 			});
-	     }   
 }
 
 
@@ -399,96 +629,101 @@ gridResize = function()
 	var grid = $(".masonry-grid");
 	if( grid.length == 0 )
 	{
+		//console.log("No grid");
 		return;
 	}
-	console.log("resized grid");
-	checkScroll();
-	var fixedheight = 250;
-	var cellpadding = 12;
-	var sofarused = 0;
+	
+	var fixedheight = grid.data("maxheight");
+	if( fixedheight == null || fixedheight.length == 0)
+	{
+		fixedheight = 200;
+	}
+	fixedheight = parseInt(fixedheight);
+	var cellpadding = grid.data("cellpadding");
+	if( cellpadding == null)
+	{
+		cellpadding = 8;  //this has to be twice what is in results.css
+	}
+	cellpadding = parseInt(cellpadding);
+	
 	var totalwidth = 0;
 	var rownum = 0;
 
-	var totalavailable = grid.width() - 5;
+	var totalavailablew = grid.width();
+	
+	//Two loops, one to make rows and one to render cells
+	var sofarusedw = 0;
+	var sofarusedh = 0;
 	
 	var row = [];
 	$(".masonry-grid .masonry-grid-cell").each(function()
 	{		
 		var cell = $(this);
-		var useimage = false;
+		cell.css("margin",cellpadding/2 + "px");
+		//cell.css("padding",cellpadding);
 		var w = cell.data("width");
 		var	h = cell.data("height");
 		w = parseInt(w);
 		h = parseInt(h);
 		if( w == 0 )
 		{
-			w = 100;
-			h = 100;
+			w = fixedheight;
+			h = fixedheight;
 		}
 		var a = w / h;  
-	
+		cell.data( "aspect",a);
+		//console.log("Aspect" + cell.data("aspect"));
 		var neww = Math.floor( fixedheight * a );
-		
-		//TODO: Default the height to something smart
-		cell.width(neww);
-		
-		var over = sofarused + neww;
-		if( over > totalavailable )
+		var isover = sofarusedw + neww;
+		if( isover > totalavailablew )
 		{
-			var overage = (totalavailable - row.length * cellpadding)/ sofarused;
-			var newheight = fixedheight * overage;
-
-			//Need to figure aspect of entire row
-			var roundedheight = Math.floor( newheight ); //make smaller
-			if( roundedheight > fixedheight + 50 )
-			{
-				roundedheight = fixedheight;
-			} 
-			$.each( row, function()
-				{
-					var newcell = this;
-					var div = newcell.cell;
-					var newwidth = Math.floor(newheight * newcell.aspect); 
-					//var area = jQuery(".imagearea img",div);
-					//area = $(area);
-					//area.height(roundedheight); 
-					div.height(roundedheight); 
-					div.width(newwidth); 
-					jQuery.data( div, "rowcount",rownum);
-				}	
-			);
+			//Process previously added cell
+			computeRow(row,fixedheight,totalavailablew,sofarusedw,cellpadding);
 			row = [];
-			sofarused = 0;
+			sofarusedw = 0;
 			rownum = rownum + 1;
 		}
-		
-		sofarused = sofarused + neww;
-		row.push( {cell:$(cell), aspect:a, width:w, height:h} );		
-		
+		sofarusedw = sofarusedw + neww;// + cellpadding;
+		row.push( cell );		
+		cell.data( "rownum",rownum);
+	});
+	$.each( row, function()
+			{
+				var div = this;
+				var a = div.data("aspect");
+				div.css("line-height",fixedheight + "px"); 
+				div.height(fixedheight);
+				$("img.imagethumb",div).height(fixedheight);
+				var neww = fixedheight * a - cellpadding;
+				div.width(Math.floor(neww - 1));
 	});
 	
-	//TODO: Move to method call
-	var overage = (totalavailable - row.length * cellpadding)/ sofarused;
-	var newheight = fixedheight * overage;
-	if( newheight > fixedheight + 100) //100 is how wide the next image is going to be
-	{
-		newheight = fixedheight + 100
-	}
-	var roundedheight = Math.floor(newheight);
-	$.each( row, function()
-		{
-			var newcell = this;
-			var div = newcell.cell;
-			var newwidth = Math.floor(newheight * newcell.aspect); 
-			//var area = jQuery(".imagearea",div);
-			//area = $(area);
-			div.height(roundedheight); 
-			div.width(newwidth); 
-			jQuery.data( div, "rowcount",rownum);
-			//jQuery("#emthumbholder img",newcell.cell).width(newwidth);
-			//jQuery(".imagearea",newcell.cell).height(roundedheight); //TODO: Fix aspect
-			//jQuery(".imagearea",newcell.cell).width(newwidth);
-		}	
-	);
+	//console.log("Resized grid");
+	checkScroll();
+	
+}
+
+/**
+A = W / H
+H = W / A
+W = A * H
+*/
+computeRow = function(row,fixedheight,totalavailablew,sofarusedw,cellpadding)
+{
+			var growthratiow = (totalavailablew - sofarusedw) / sofarusedw;
+			$.each( row, function()
+			{
+				var div = this;
+				var a = div.data("aspect");
+				var oldw = a * fixedheight;
+				var ratiow = oldw + (oldw * growthratiow); //Here is the magic
+				var newheight = Math.floor(ratiow / a); //There cells should all be the same height
+				div.css("line-height",newheight + "px"); 
+				div.height(newheight);
+				$("img.imagethumb",div).height(newheight);
+				var neww = newheight * a - cellpadding;
+				div.width(Math.floor(neww - 1));  //The 1 is for rounding errors
+			});
 }
 	
+

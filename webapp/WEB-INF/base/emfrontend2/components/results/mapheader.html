@@ -1,0 +1,57 @@
+#if( !$hits )
+#set( $hits = $collectionassets)
+$context.putPageValue("hits",$hits)
+#end
+
+#if( !$hits )
+#set( $hits = $orderassets)
+$context.putPageValue("hits",$hits)
+#end
+
+#if($hits)
+	#set( $collectionid = $hits.getInput("collectionid") )
+	#if( $collectionid && !$librarycol)
+	
+		#set( $librarycol = $mediaarchive.getData("librarycollection",$collectionid) )
+		$context.putPageValue("librarycol",$librarycol)
+	#end
+	#set( $catid = $hits.getInput("categoryid") )
+	#if( $catid && !$category)
+	#set( $category = $mediaarchive.getData("category",$catid) )
+	#end
+	#set( $orderid = $hits.getInput("orderid") )
+	#if( $orderid)
+		#set( $order = $mediaarchive.getData("order",$orderid) )
+		$context.putPageValue("order",$order)
+	#end
+#end	
+<div id="resultsheader">
+	<div id="sub-nav" class="emsubnav">
+	<ul class="resultsnavright">
+		
+		#set ($enabled=$hits.getSelectionSize() > 0)
+	
+		
+		#set ($resultview = $userprofile.get('resultview'))
+	
+		
+		#if(!$resultview)
+			#set($resultview = $userprofile.get("resultview"))
+			#if (!$resultview)
+				#set($resultview = "table")
+			#end
+		#end
+		#if(!$edit || $edit == "false"  )
+			<li class="resultsnavtitem">
+					<select name="resultview" id="selectresultview" class="form-control" 
+						data-hitssessionid="$hits.getSessionId()" data-searchtype="asset" data-page="$hits.getPage()" data-showremoveselections="$showremoveselections" data-collectionid="$!librarycol.getId()" data-hitsperpage="$hits.getHitsPerPage()">
+						#set( $types = $mediaarchive.getList("resulttype"))
+						#foreach($type in $types)
+							<option value="$type.getId()" #if( $resultview == "$type.getId()") selected #end>$type.getName($context)</option>
+						#end
+					</select>
+			</li>
+		#end	
+	</ul>
+	</div>
+</div>

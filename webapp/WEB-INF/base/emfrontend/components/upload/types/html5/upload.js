@@ -32,6 +32,8 @@ var uploadid;
 	        	$(startb).text("Upload");
     			$(startb).removeAttr('disabled');
 	        	jQuery("#uploadinstructionsafter").show();
+	        	jQuery(".showonselect").show();
+	        	
 	        	 
 	        	 var regex = new RegExp("currentupload", 'g');  
 	        	 
@@ -67,15 +69,16 @@ $(document).ready(function()
         e.preventDefault(); 
      });
 
-    jQuery("#startbutton").livequery('click',function() 
+    jQuery("#startbutton").livequery('click',function(e) 
     {
+    	e.preventDefault(); 
     	var valid = $("#uploaddata").validate().form();
     	if(!valid){
     		return;
     	}
     	$(this).text("Uploading");
     	$(this).attr('disabled', 'disabled');
-    	 $("#viewassets").attr('disabled', 'disabled');
+    	 $("#viewassetsbtn").attr('disabled', 'disabled');
     	jQuery("#upload_field").triggerHandler("html5_upload.start");
     	
     });
@@ -182,8 +185,9 @@ $(document).ready(function()
 	        	 if( !haderror)
 	        	{
 	        			var startb = $("#startbutton");
-	        			$(startb).text("Upload Complete");
-    				   allfiles = new Array();
+	        			var complete = startb.data("complete");
+	        			$(startb).text(complete);
+    				    allfiles = new Array();
     				   
 		   				var completed = $("#up-files-list-completed li span");
 						jQuery.each(completed,function()
@@ -193,9 +197,10 @@ $(document).ready(function()
     				   jQuery("#filePicker").text("Pick More Files...");
     				   jQuery("#upload_field").removeAttr('disabled');
     				   
-    				   var viewassets = $("#viewassets");
+    				   var viewassets = $("#viewassetsbtn");
 	        		   viewassets.removeAttr('disabled');
     				   
+    				   $("#autofinishbutton").trigger("click");
     				   //$(".media_results_tab").data("tabloaded",false);
 	        	}
 	

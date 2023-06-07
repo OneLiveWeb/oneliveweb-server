@@ -1,0 +1,48 @@
+#set($idcount = $context.getRequestParameter("idcount"))
+#if(!$idcount)
+	#set($idcount = "")
+#end
+
+<div class="assetpicker">
+
+<div id="${detail.id}-file-info">
+
+<div class="render-type-thumbnail" id="${detail.id}-preview">
+#if($val && $val != "")
+	#set( $foundrow = $mediaarchive.getAsset($val)  )
+	#if($foundrow)
+		$pages.include("$apphome/components/xml/types/assetpicker/preview.html?assetid=$val", $context)
+		<span id="${detail.id}-file-info" class="assetpicker-filename">
+			$!mediaarchive.getAsset($val)
+		</span>			
+	#end
+#end
+</div>
+</div>
+<span class="${detail.id}-clearselected attachment-clearselection" #ifnull( $val ) style="display:none;"  #end>
+		<a href="#" class="removefieldassetvalue" 
+			data-targetdivinner="${detail.id}-file-info"
+			title="[[Remove Asset Selected]]" 
+			data-detailid="${detail.id}"
+			><i class="fas fa-times"></i> [[Clear Selection]]</a>
+</span>
+
+<input type="hidden" name="${detail.id}.value" id="${detail.id}-value" value="$!foundrow.id"/>
+
+
+<span class="btn btn-sm btn-primary btn-default btn-file">
+    [[Choose a File]] 
+	<input type="file" name="file.${detail.getId()}" id="${detail.id}-file" onchange='var name = $(this).val().split("\\").pop().split("/"	).pop();$("#${detail.id}-file-info").html(name);$("#${detail.id}-clearselected").show();'>
+</span>
+
+[[or]] 
+
+
+<a href="$home$apphome/components/assetpicker/search/searchassets.html?targetdiv=${detail.id}-value&detailid=${detail.id}" 
+	data-target="$home$apphome/components/assetpicker/search/searchassets.html?targetdiv=${detail.id}-value&detailid=${detail.id}"
+	data-dialogid="assetsearchdialog" 
+	data-maxwidth="760"  
+	class="emdialog  btn btn-primary" >[[View Catalog]]</a> 
+
+
+</div>

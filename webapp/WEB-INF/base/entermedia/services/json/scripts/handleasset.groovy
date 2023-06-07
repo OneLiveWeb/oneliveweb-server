@@ -1,22 +1,22 @@
 import groovy.json.JsonSlurper
 
-import org.entermedia.upload.FileUpload
-import org.entermedia.upload.UploadRequest
+import org.entermediadb.upload.FileUpload
+import org.entermediadb.upload.UploadRequest
 import org.json.simple.JSONObject
 import org.openedit.Data
 import org.openedit.data.Searcher
 import org.openedit.data.SearcherManager
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.MediaArchive
 import org.openedit.entermedia.scanner.AssetImporter
 import org.openedit.entermedia.search.AssetSearcher
 import org.openedit.util.DateStorageUtil
 import org.openedit.entermedia.Category
 
-import com.openedit.OpenEditException
-import com.openedit.WebPageRequest
-import com.openedit.page.Page
-import com.openedit.util.OutputFiller
+import org.openedit.OpenEditException
+import org.openedit.WebPageRequest
+import org.openedit.page.Page
+import org.openedit.util.OutputFiller
 
 public void handleAssetRequest(){
 

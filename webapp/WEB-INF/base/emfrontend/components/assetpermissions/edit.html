@@ -4,7 +4,7 @@
 
 <h2>[[Permission Editor]]</h2>
 
-<p>$permdata.name - $!permdata.description</p>
+<p>$permdata.name - $!permdata.caption</p>
 <br>
 
 #if( $issimple == "true" )
@@ -59,7 +59,7 @@ $pages.include("./xml/edit.html")
 #end
 #set( $settingsgroups = $searcherManager.getList($catalogid,"settingsgroup"))	
 #if( $settingsgroups.size() > 0)
-		<option value="">User Profile</option>
+		<option value="">[[User Profile]]</option>
 #foreach( $settings in $settingsgroups )
 		<option value="settingsgroup.$settings.id">&nbsp;&nbsp;&nbsp;&nbsp;$settings.name</options>
 #end

@@ -1,8 +1,8 @@
-import org.entermedia.attachments.AttachmentManager
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
+import org.entermediadb.asset.attachments.AttachmentManager
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.MediaArchive
 
-import com.openedit.hittracker.HitTracker
+import org.openedit.hittracker.HitTracker
 
 
 public void init()

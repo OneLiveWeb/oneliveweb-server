@@ -1,0 +1,8 @@
+<page>
+	
+	<inner-layout />
+	<path-action name="ProjectModule.createCollection"/>
+	<path-action name="ProjectModule.addAssetToCollection"  />
+	<path-action name="MediaArchiveModule.getAsset"  />
+	
+</page>

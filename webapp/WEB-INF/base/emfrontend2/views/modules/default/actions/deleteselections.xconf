@@ -1,0 +1,8 @@
+<page>
+<path-action name="DataEditModule.deleteSelections">
+	
+		<searchtype>${module}</searchtype>
+	
+</path-action>
+	<inner-layout>/${applicationid}/theme/layouts/searchlayout.html</inner-layout>
+</page>

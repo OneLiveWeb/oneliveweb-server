@@ -1,0 +1,33 @@
+#if ( $hits.getSelectionSize() == 0 )
+	<p>You must select at least once item to use this feature.</p>
+#else
+<h3>[[Batch Edit]] - [[Editing]] $hits.getSelectionSize() [[records]]</h3>
+
+<div class="alert alert-warning">[[Be aware, there is no undo capability]].</div>
+
+<div id="editlayout">
+#set( $origURL = $context.getRequestParameter("origURL" ) )
+#set( $categoryid = $context.getRequestParameter("categoryid" ) )
+
+#if( !$view )				
+	#set( $view = "${searcher.searchType}/${searcher.searchType}batchedit" )
+#end
+
+
+$context.putPageValue("viewid", "${searcher.searchType}batchedit")
+$context.putPageValue("viewpath", $view)
+$context.putPageValue("showcheckbox", true)
+
+$pages.include("./edit.html")
+
+<div id="messagearea">$!message
+</div>
+
+#if( $savedok && $origURL )
+	<a href="$origURL">[[Go Back]]</a>	
+#end
+
+
+</div>
+
+#end

@@ -6,9 +6,6 @@ $context.putPageValue("showtoolbar",  $showtoolbar)
 #end
 
 $context.putPageValue("assetrootfolder", "/$catalogid/assets")
-#if( !$thumbsize )
-    #set( $thumbsize  = "thumb" )
-#end
 
 #if( $category )
     #set( $catid = $category.id )
@@ -20,7 +17,7 @@ $context.putPageValue("assetrootfolder", "/$catalogid/assets")
     #set( $details = $mediaarchive.getAssetSearcher().getDetailsForView("asset/resultstable",$context.getUserProfile()) )
     $context.putPageValue("details",$details)
 	#set( $viewerlink = $content.get("assetviewerlink") )
-	<div  class="emgallery" style="clear:both"  >
+	<div  class="emgallery"  >
 	    <div  id="emslidesheet" class="clearfix">
 		    #set( $rootid = $hits.sessionId )
 		    #set($count = 0)

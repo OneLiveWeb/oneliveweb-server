@@ -1,13 +1,4 @@
-jQuery(document).ready(function() {
-	// Add highlight logic for mouse overs
-	jQuery('.highlightMe').mouseover(function(){
-		jQuery(this).addClass('highlight');
-	});
-	jQuery('.highlightMe').mouseout(function(){
-		jQuery(this).removeClass('highlight');
-	});
 
-});
 
 Array.prototype.index = function(val) {
   for(var i = 0, l = this.length; i < l; i++) {
@@ -53,7 +44,7 @@ var DetailEditor = {
 		else{
 			e.hide();
 			
-		  if(i.val() == '') 
+			if(i.val() == '') 
 				i.val(default_value);
 		}		
 	}

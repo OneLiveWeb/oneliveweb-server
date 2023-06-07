@@ -1,15 +1,20 @@
 <properties>
 	<property id="name" />
 	<property id="inputtype"/>
-	<property id="outputfile" />
-	<property id="fileexportformat" />
-	<property id="type" />
+	<property id="transcoderid" />
+	<property id="outputextension" />
 	<property id="guid" />
+	<property id="fileexportformat" />
 	<property id="onimport" />
-	<property id="ordering" />
-		<property id="display" />
-			<property id="singlepage" />
+	<property id="onpush" />
 	
+	<property id="ordering" />
+	<property id="display" />
+	<property id="singlepage" />
+	<property id="enforceaspectratio" />
+	<property id="systemdefinedpreset" />
+	
+	<property id="outputfile" />
 </properties>
 
    

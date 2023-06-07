@@ -5,7 +5,7 @@ import org.openedit.Data
 import org.openedit.data.*
 import org.openedit.entermedia.util.CSVWriter
 
-import com.openedit.hittracker.HitTracker
+import org.openedit.hittracker.HitTracker
 	
 
 HitTracker hits = (HitTracker) context.getPageValue("hits");
@@ -13,6 +13,7 @@ if(hits == null){
  String sessionid = context.getRequestParameter("hitssessionid");
  hits = context.getSessionValue(sessionid);
 }
+hits.enableBulkOperations();
 searcherManager = context.getPageValue("searcherManager");
 searchtype = context.findValue("searchtype");
 catalogid = context.findValue("catalogid");

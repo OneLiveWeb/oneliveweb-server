@@ -1,17 +1,19 @@
 package publishing;
 
+import java.awt.JobAttributes.DestinationType
+
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.MediaArchive
+import org.entermediadb.asset.publishing.PublishResult
+import org.entermediadb.asset.publishing.Publisher
+import org.entermediadb.asset.xmp.XmpWriter
 import org.openedit.Data
 import org.openedit.data.Searcher
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
-import org.openedit.entermedia.publishing.*
-import org.openedit.event.*
-
-import com.openedit.hittracker.HitTracker
-import com.openedit.hittracker.SearchQuery
-import com.openedit.page.Page
-
-import org.entermedia.locks.Lock;
+import org.openedit.event.WebEvent
+import org.openedit.hittracker.HitTracker
+import org.openedit.hittracker.SearchQuery
+import org.openedit.locks.Lock
+import org.openedit.page.Page
 
 
 public void init() {
@@ -44,7 +46,7 @@ public void init() {
 	//query.addNot("remotepublish","true");
 	
 	HitTracker tracker = queuesearcher.search(query);
-	log.info("publishing " + tracker.size() + " assets" + queuesearcher);
+	log.info("publishing " + tracker.size() + " assets" + queuesearcher.getCatalogId());
 	if( tracker.size() > 0)
 	{
 		for( Data result:tracker)
@@ -70,25 +72,69 @@ public void init() {
 					
 			String publishdestination = publishrequest.get("publishdestination");
 			Data destination = mediaArchive.getSearcherManager().getData(mediaArchive.getCatalogId(), "publishdestination",publishdestination);
-
+			if( destination == null)
+			{
+				publishrequest.setProperty('status', 'error');
+				publishrequest.setProperty("errordetails", "Publish destination is invalid " + publishdestination);
+				queuesearcher.saveData(publishrequest, context.getUser());
+				log.error("Publish destination is invalid " + publishdestination);
+				continue;
+			}
+			
+			Collection excludes = destination.getValues("excludeassettype");
+			if( excludes != null)
+			{
+				String type = asset.get("assettype");
+				if( type == null)
+				{
+					type = "none";
+				}
+				if( excludes.contains(type))
+				{
+					publishrequest.setProperty('status', 'error');
+					
+					Data assetttype = mediaArchive.getData("assettype",type);
+					publishrequest.setProperty("errordetails", "667: Asset Type excluded from publishing");
+					queuesearcher.saveData(publishrequest, context.getUser());
+					log.error("Publish destination asset type excluded " + publishdestination);
+					continue;
+				}
+			}
+			
+			Lock lock = null;
 			try
 			{
 				Publisher publisher = getPublisher(mediaArchive, destination.get("publishtype"));
-				Lock lock = mediaArchive.getLockManager().lockIfPossible("assetpublish/" + asset.getSourcePath(), "admin");
+				lock = mediaArchive.getLockManager().lockIfPossible("assetpublish/" + asset.getSourcePath(), "admin");
+				
 				if( lock == null)
 				{
 					log.info("asset already being published ${asset}");
 					continue;
 				}
+				//log.info("Lock Version (${asset}): Version:  " + lock.get(".version") + "Thread: " + Thread.currentThread().getId()  + "Lock ID" + lock.getId());
 				PublishResult presult = null;
-				try
-				{
+				
+				//	log.info("Publishing  Version (${asset}): Version:  " + lock.get(".version") + "Thread: " + Thread.currentThread().getId()  + "Lock ID" + lock.getId());
+				
+				if(Boolean.parseBoolean(destination.get("includemetadata"))){
+				
+					Page inputpage = publisher.findInputPage(mediaArchive, asset, preset);
+					XmpWriter writer = (XmpWriter) mediaArchive.getModuleManager().getBean("xmpWriter");
+					if(inputpage.exists()){
+						writer.saveMetadata(mediaArchive, inputpage.getContentItem(), asset, new HashMap());
+						
+					}
+						
+				}
+				
+				
+				
+					
 					presult = publisher.publish(mediaArchive,asset,publishrequest, destination,preset);
-				}
-				finally
-				{
-					mediaArchive.releaseLock(lock);
-				}
+					//Thread.sleep(3000);
+				
+				
 				if (presult == null)
 				{
 					log.info("result from publisher is null, continuing");
@@ -118,6 +164,9 @@ public void init() {
 				}
 				//check for remotempublishstatus?
 			}
+			
+			
+			
 			catch( Throwable ex)
 			{
 				log.error("Problem publishing ${asset} to ${publishdestination}", ex);
@@ -129,6 +178,17 @@ public void init() {
 				publishrequest.setProperty("errordetails", "${destination} publish failed ${ex}");
 				queuesearcher.saveData(publishrequest, context.getUser());
 			}
+			
+			
+			finally
+			{
+				if(lock != null){
+				//	log.info("Release Lock Version (${asset}): Version: " + lock.get(".version") + " Thread: " + Thread.currentThread().getId() + "Lock ID" + lock.getId());
+					mediaArchive.releaseLock(lock);
+				}
+			}
+			
+			
 			asset = null; //This is kind of crappy code.
 		
 		}
@@ -144,7 +204,7 @@ protected firePublishEvent(String inOrderItemId)
 	event.setOperation("publishing/publishcomplete");
 	event.setUser(context.getUser());
 	event.setCatalogId(mediaarchive.getCatalogId());
-	mediaarchive.getMediaEventHandler().eventFired(event);
+	mediaarchive.getEventManager().fireEvent(event);
 
 }
 

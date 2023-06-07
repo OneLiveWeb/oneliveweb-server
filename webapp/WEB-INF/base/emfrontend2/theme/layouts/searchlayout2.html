@@ -1,0 +1,59 @@
+#if(!$category)
+	#set($categoryid = $context.getRequestParameter("categoryid"))
+	#if(!$categoryid)
+		#set($categoryid = $context.getRequestParameter("category.value"))
+	#end
+	#if (!$categoryid)
+		#set($categoryid = $context.getRequestParameter("nodeID"))
+		#set($nodeID = $context.getRequestParameter("nodeID"))
+	#end
+	#if($categoryid)
+		#set($category = $mediaarchive.getData("category",$categoryid))
+		#if($category)
+			$context.putPageValue("category",$category)
+		#end
+	#end
+#end
+
+#if( !$librarycol && $category ) 
+	#set( $librarycol = $mediaarchive.query("librarycollection").orgroup("rootcategory",$category.getParentCategories()).searchOne() )
+#end
+#if( !$librarycol )
+	#set($collectionid = $context.getRequestParameter("collectionid"))
+	#if($collectionid)
+		#set( $librarycol = $mediaarchive.query("librarycollection").exact("id",$collectionid).searchOne() )
+	#end
+#end
+
+#if( $librarycol )	
+	$context.putPageValue("librarycol",$librarycol)
+#end
+##Sidebars
+#if( $canviewcategorynav || ( $librarycol && $canviewcategorynavcollections ) )
+	#set( $leftbarstatus = $userprofile.get("leftbarstatus"))
+#else
+	#set( $leftbarstatus = false)
+#end
+#set( $filtersbarstatus = $userprofile.get("filtersbarstatus"))
+
+#set( $colleftwidth = $userprofile.get("colleftwidth"))
+#set( $module = $content.module)
+<div id="filteredresults" class="layoutmaincontent">
+	$pages.includeContent()
+</div>
+#if( $canviewcategorynav || ( $librarycol && $canviewcategorynavcollections ) )
+<div id="col-left" 
+	class="col-main col-left #if ($leftbarstatus!=false) leftopen #end #if($librarycol) col-left-library #end fixedheight"
+	style="#if($colleftwidth) width:${colleftwidth}px;#end"
+	data-colleftwidth="$!{colleftwidth}">
+	<div class="col-main-inner">
+		$pages.include("$apphome/components/sidebars/standard-left.html", $context)
+	</div>
+	<div class="colslidercontainer">
+	<a href="#" class="col-left-resize" title="[[Resize Sidebar]]"></a>
+	</div>
+</div>
+#end
+
+
+

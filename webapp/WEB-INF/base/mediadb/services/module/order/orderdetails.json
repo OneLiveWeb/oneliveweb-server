@@ -13,7 +13,7 @@
   "order":#json($order $searcher.getPropertyDetails())
 , "orderitems": [
 #foreach( $item in $orderManager.findOrderItems($context,$catalogid,$order) )
-#if( $velocityCount != 1), #end 
+#if( ${foreach.count} != 1), #end 
 {"id":"$item.getId()",
 #set($pqueue = false)#set($pqueue = $pqsearcher.searchById($item.publishqueueid) )
 "publishqueue": #json($pqueue $pqsearcher.getPropertyDetails()),
@@ -28,6 +28,7 @@
 	#set( $outputfile = "${preset.outputfile}/$mediaarchive.asExportFileName($asset, $preset)")
 	#set( $url = "$home$apphome/services/module/asset/downloads/generatedpreview/${asset.sourcepath}/$outputfile")
 #end	
+
 	"path":#jesc($url)
 },
 "asset": { 
@@ -40,7 +41,7 @@
 , "history": [
 #set( $historyhits = $orderManager.findOrderHistory( $catalogid,$order) )
 	#foreach( $history in $historyhits ) 
-	 #if( $velocityCount != 1), #end 
+	 #if( ${foreach.count} != 1), #end 
 	 #json($history $hsearcher.getPropertyDetails())
 	#end
  ] 

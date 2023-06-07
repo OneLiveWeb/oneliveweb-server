@@ -1,0 +1,45 @@
+#if(!$hits)
+        #set($hitsname = $context.getRequestParameter('hitsname'))
+        #set($hits = $context.getPageValue($hitsname))
+#end
+
+#if(!$hits)
+        #set($hitssessionid = $context.getRequestParameter('hitssessionid'))
+        #if($hitssessionid)
+            #set($hits = $context.getSessionValue($hitssessionid))
+        #end
+#end
+#set( $moduleid = $page.get("module") )
+#set( $searchhome = $page.get("searchhome") )
+$context.putPageValue("searchhome",$searchhome)
+
+#if(!$hits)
+#set($hits = $context.getPageValue($content.hitsname))
+#end
+$context.putPageValue("hits", $hits)
+
+
+
+<div id="searchplugin" class="settingslayout modules-layout">
+	<div class="col-main col-sidebar" id="leftsidebar">
+		<div class="col-main-inner">
+			
+			#set($module = $searcherManager.getData($catalogid, "module", $moduleid ) )
+			<h2>#text($module)</h2>
+			 
+			$pages.include("${searchhome}/sidebar/standard.html",$context)
+			<div class="clearfix"></div>
+			
+		</div>
+	</div>
+	<div class="col-main col-content col-content-main" class="module-inner">
+				<div id="resultsdivcontainer" class="" data-hitssessionid="$hits.getSessionId()" data-searchtype="$moduleid" data-searchhome="$home$content.searchhome" data-category="$!category.getId()" data-pagenum="$hits.getPage()"  data-totalpages="$hits.getTotalPages()">
+					<div id="resultsarea"  class="" >
+								$pages.includeContent()
+					</div>
+							
+				</div>
+				
+	</div>
+
+</div> 

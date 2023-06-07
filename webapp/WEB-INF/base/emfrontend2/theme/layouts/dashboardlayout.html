@@ -1,0 +1,40 @@
+#set( $tab = $context.findValue("tab") )
+#set( $reportid = $context.findValue("reportid") )
+
+<div class="col-sidebar" id="leftsidebar">
+		<div class="ui-widget" >
+			<div  class="ui-widget-header">
+			<span class="widget-header-title">[[Reports]]</span>
+			<span class="widget-header-right">
+			</span>
+			</div>
+			<div  class="ui-widget-content categories-widget no-padding-for-real">
+				<ul id="settings-menu" class="sidebar-list">
+				<li id="Home" #if( !$reportid ) class="current" #end>
+						<a href="$home$apphome/views/dashboard/index.html">[[Dashboard]]</a>
+					</li>
+				
+					#set ($reports = $searcherManager.getList("system", "reports") )
+					#foreach($screen in $reports )
+					<li id="$screen.id" #if( $report.id == "$screen.id" ) class="current" #end>
+						<a href="$home$apphome/views/dashboard/executefinish.html?reportid=$screen.id&cache=false">$context.getText($screen.toString())</a>
+					</li>
+					#end
+				<li id="desktops" #if( $reportid == "desktops" ) class="current" #end>
+						<a href="$home$apphome/views/dashboard/desktops.html">[[Desktops]]</a>
+					</li>
+					
+				</ul>
+			</div>
+		</div>
+
+
+         </div>
+         <div class="col-content" id="maincontent">	
+			<div class="liquid-sizer settings dashboardcontainer">
+				$pages.includeContent()
+			</div>
+         </div>
+
+
+		

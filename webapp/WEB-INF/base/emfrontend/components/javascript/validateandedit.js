@@ -5,13 +5,71 @@ var app,home,apphome,themeprefix;
 
 
 jQuery(document).ready(function() 
+{
+	app = jQuery("#application");
+	home =  app.data("home");
+	apphome = home + app.data("apphome");
+	themeprefix = app.data("home") + app.data("themeprefix");
+	
+	jQuery(document).on('change', ".lenguagepicker", function()
+	{
+		//Makes sure the name matches the new value
+		var select = $(this);
+		var div = $(this).closest(".languagesaddform");
+		var langinput = $(".langvalue",div);
+		var detailid = select.data("detailid");
+		var lang = select.val();
+		langinput.attr("name",detailid + "." +  lang + ".value" );
+	});
+	
+	$("textarea").livequery("keydown",function(e) {
+		  var $this, end, start;
+		  if (e.keyCode === 9) {
+		    start = this.selectionStart;
+		    end = this.selectionEnd;
+		    $this = $(this);
+		    $this.val($this.val().substring(0, start) + "\t" + $this.val().substring(end));
+		    this.selectionStart = this.selectionEnd = start + 1;
+		    return false;
+		  }
+		});
+	
+	jQuery(".languagesavebtn").livequery('click', function(event){
+		event.stopPropagation();
+		event.preventDefault();
+		
+		var btn = $(this);
+		var url =  btn.attr('href');
+		var detailid = btn.data('detailid');
+		
+		var div = btn.closest(".emdatafieldvalue"); 
+		
+		var count = $("#languagesextra_" + detailid, div ).data("count");
+		count = count + 1;
+		var languages = [];
+		var args = {oemaxlevel : 1, 
+					detailid : detailid,
+					count: count,
+					usedlanguages : [] 
+					};
+		
+		$(".lenguagepicker", div).each(function()
 		{
-			app = jQuery("#application");
-			home =  app.data("home");
-			apphome = home + app.data("apphome");
-			themeprefix = app.data("home") + app.data("themeprefix");	
-		}
-);
+			var value = $(this).val();
+			args.usedlanguages.push(value); 
+		});
+		$.get(url,args, function(data) {
+			var selectlist = $(".lenguagepicker option", data);
+			if( $(selectlist).length > 0)
+			{
+				$("#languagesextra_"+detailid,div).append(data);
+				$("#colanguagesextra_" + detailid,div ).data("count",count);
+				$(document).trigger("domchanged");
+			}	
+		})	
+		
+	});
+});
 
 
 showPicker = function(detailid)
@@ -124,11 +182,9 @@ postForm = function(inDiv, inFormId)
 	if( jQuery )
 	{
 		var targetdiv = inDiv.replace(/\//g, "\\/");
-		jQuery(form).ajaxSubmit( 
-			{
-				target:"#" + targetdiv
-			}
-		);	
+		jQuery(form).ajaxSubmit({
+					target:"#" + targetdiv
+				 });
 	}
 	else
 	{

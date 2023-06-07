@@ -1,0 +1,10 @@
+#
+#Tue Oct 02 15:51:10 CDT 2018
++=+
+Remove\ from\ Basket=Retirer du panier
+Basket=Panier
+Cart=Panier
+Add\ to\ Basket=Ajouter au panier
+Remove\ From\ Basket=Retirer du panier
+Add\ To\ Basket=Ajouter au panier
+-=-

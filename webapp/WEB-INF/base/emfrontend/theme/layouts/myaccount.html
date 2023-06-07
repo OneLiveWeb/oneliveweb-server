@@ -6,8 +6,9 @@
 			<div class="ui-widget-header">[[My Account]]</div>
 			<div class="ui-widget-content categories-widget no-padding-for-real">
 				<ul id="settings-menu" class="sidebar-list">
+				
 					#set( $searcher = $searcherManager.getSearcher($catalogid,"settingsmenumodule") )
-					#set( $screens = $searcher.query().match("type","toplevel").match("module", "user").sort("orderingDown").search() ) 
+					#set( $screens = $searcher.query().match("menulevel","toplevel").match("moduleid", "user").sort("orderingUp").search() ) 
 					#foreach($screen in	$screens)
 						#if($screen.permission)
 							#set($canview = $context.getPageValue("can${screen.permission}"))
@@ -23,7 +24,12 @@
 				</ul>
 			</div>
 		</div>
-		$pages.include("$apphome/components/libraries/sidebar.html",$context)
+
+#if ( $canviewopencollections )
+$pages.include("$apphome/components/opencollections/sidebar.html",$context)
+#end
+
+##$pages.include("$apphome/components/dontshow/sidebar.html",$context)
 		
 		
 	</div>

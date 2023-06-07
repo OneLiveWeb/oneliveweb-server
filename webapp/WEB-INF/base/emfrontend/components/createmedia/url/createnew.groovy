@@ -1,21 +1,16 @@
 import groovy.json.JsonSlurper
-import model.projects.ProjectManager
 
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
-import org.openedit.store.*
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.MediaArchive
+import org.entermediadb.projects.ProjectManager
+import org.openedit.page.*
 import org.openedit.util.DateStorageUtil
-
-import com.openedit.page.*
-import com.openedit.util.PathUtilities
+import org.openedit.util.PathUtilities
 
 
 MediaArchive mediaarchive = context.getPageValue("mediaarchive");
 
 Asset asset = mediaarchive.getAssetSearcher().createNewData();
-asset.setId(mediaarchive.getAssetSearcher().nextAssetNumber());
-String sourcepath = "newassets/${context.getUserName()}/${asset.id}";
-asset.setSourcePath(sourcepath);
 asset.setFolder(true);
 asset.setProperty("owner", context.userName);
 asset.setProperty("importstatus", "needsdownload")
@@ -68,31 +63,40 @@ else if (externalmediainput.contains("vimeo") )
 }
 else
 {
-	int ques = externalmediainput.indexOf("?");
+	String name = externalmediainput;
+	int ques = name.indexOf("?");
 	if( ques > -1)
 	{
-		externalmediainput = externalmediainput.substring(0,ques);
+		name = name.substring(0,ques);
 	}
-	asset.setName( PathUtilities.extractFileName(externalmediainput));		
+	asset.setName( PathUtilities.extractFileName(name));		
 }
 
 //TODO: Use some parser interface and grab more metadata from youtube or vimeo, flickr
-if( fetchthumb != null)
+asset.setProperty("linkurl",externalmediainput);
+
+if( fetchthumb == null)
 {
-	asset.setProperty("fetchurl",fetchthumb);
-	asset.setProperty("linkurl",externalmediainput);
+	asset.setProperty("fetchurl",externalmediainput);
 }
 else
-{
-	asset.setProperty("fetchurl",externalmediainput);	
+{	
+	//this is still set because we dont currently have a way to make thumbnails for embdedded file formats
+	asset.setProperty("fetchurl",fetchthumb);
+	asset.setProperty("fetchthumbnailurl",fetchthumb);
+	asset.setProperty("assettype","embedded");
 }
+asset.setProperty("importstatus","needsdownload");
+
+String sourcepath = mediaarchive.getAssetImporter().getAssetUtilities().createSourcePath(context,mediaarchive,asset.getName());
+asset.setSourcePath(sourcepath);
+
+
 //String embed =  context.getRequestParameter("embeddedurl.value") 
 //if( embed != null )
 //{
 //	asset.setProperty("fileformat","embedded");	
 //}
-
-asset.setProperty("importstatus","needsdownload");
 //See if embed video is set? if not then fill it in?
 
 mediaarchive.saveAsset(asset, context.getUser());

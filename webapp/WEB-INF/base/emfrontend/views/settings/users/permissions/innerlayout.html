@@ -1,5 +1,3 @@
-
-
 #set($currentrole = $context.getRequestParameter("settingsgroupid")) 
 #set($permissiontype = $context.getRequestParameter("permissiontype")) 
 #set ($groupSearcher = $searcherManager.getSearcher($catalogid, "settingsgroup"))
@@ -12,7 +10,7 @@
        #foreach($settingsgroup in $groupSearcher.fieldSearch("id", "*", "textUp"))
            <option #if($currentrole == $settingsgroup.id) selected #end value="$settingsgroup.id">$settingsgroup</option>
        #end
-           <option value="new">-- Add New Role --</option>
+           <option value="new">-- [[Add New Role]] --</option>
     </select>
     
     <script>
@@ -37,9 +35,9 @@
             <select style="position: relative; top: 2px; margin-left: 5px;">
                 <option value="all">Show All</option>
            
-                #foreach($item in $permissionsearcher.getAllHits())
+                #foreach($item in $permissionsearcher.query().all().sort("permissiontype").sort("ordering").search($context) )
                      #if( $section != $item.permissiontype )
-                         <option #if($permissiontype == $item.permissiontype) selected #end value="$item.permissiontype">$searcherManager.getData($catalogid,"permissiontype",$item.permissiontype)</option>
+                         <option #if($permissiontype == $item.permissiontype) selected #end value="$!item.permissiontype">$!searcherManager.getData($catalogid,"permissiontype",$item.permissiontype)</option>
                      #set( $section = $item.permissiontype)
                      #end   
                  #end
@@ -50,10 +48,13 @@
                var rolesval = $('select#roles').val();
                var val = $(this).val();
                if ( val == "all" ) {
-                  $("#permissions-div").load("./views/index.html?oemaxlevel=1&settingsgroupid=" + rolesval);
+              //    $("#permissions-div").load("./views/index.html?oemaxlevel=1&settingsgroupid=" + rolesval);
+              jQuery(".togglesection").show();
                }
                else {
-                  $("#permissions-div").load("./views/index.html?oemaxlevel=1&settingsgroupid=" + rolesval + "&permissiontype=" + val);
+            	   jQuery(".togglesection").hide();
+            	   jQuery("."+ val).show();
+                //  $("#permissions-div").load("./views/index.html?oemaxlevel=1&settingsgroupid=" + rolesval + "&permissiontype=" + val);
                }
             });
         </script>   

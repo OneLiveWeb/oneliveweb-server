@@ -8,7 +8,7 @@
                     <div class="main-info">
         
  <div class="primary" style="text-align: center">
-						Editing across $asset.size() assets
+						[[Editing across]] $asset.size() [[assets]]
 </div>
 </div>
 		#else            
@@ -41,7 +41,7 @@
             <div class="main-info">
                 <div class="primary">
                                 
-                    $asset #if ($totalpages > 1) <span style="opacity: 0.8; font-size: 11px; font-weight: normal; position: relative; top: -3px; margin-left: 5px;"><a class="propertyset" propertyname="maximize_player" style="color: #fff;" propertyvalue="true" targetdiv="detaileditor" href="$home$apphome/views/assets/$asset.sourcepath/index.html?hitssessionid=$hitssessionid&oemaxlevel=2">($totalpages Pages)</a></span> #end
+                    $asset #if ($totalpages > 1) <span style="opacity: 0.8; font-size: 11px; font-weight: normal; position: relative; top: -3px; margin-left: 5px;"><a class="propertyset" propertyname="maximize_player" style="color: #fff;" propertyvalue="true" targetdiv="detaileditor" href="$home$apphome/views/assets/$asset.sourcepath/index.html?hitssessionid=#esc($hitssessionid)&oemaxlevel=2">($totalpages [[Pages]])</a></span> #end
                 </div>
                 <div class="secondary">
                     <div id="mp-asset-info">
@@ -49,56 +49,56 @@
                         <a href="$home$apphome/views/modules/asset/editor/attachments/index.html?assetid=$asset.id&hitssessionid=$!{hitssessionid}" class="attachments">$attachmentcount<span>&nbsp;</span></a>
                         #end
                         #set( $views = $mediaarchive.getAssetStatsManager().getViewsForAsset($asset))
-                        <a href="$home$apphome/views/modules/asset/editor/historypreviews/index.html?assetid=$asset.id&hitssessionid=$hitssessionid" class="views">$views<span class="">&nbsp;</span></a>
+                        <a href="$home$apphome/views/modules/asset/editor/historypreviews/index.html?assetid=$asset.id&hitssessionid=#esc($hitssessionid)" class="views">$views<span class="">&nbsp;</span></a>
                         
-                        <a style="margin-right: 0;" href="$home$apphome/views/modules/asset/editor/comment/index.html?assetid=$asset.id&sourcepath=$asset.sourcepath&hitssessionid=$hitssessionid" class="comments">$!comments.size()<span>&nbsp;</span></a>
+                        <a style="margin-right: 0;" href="$home$apphome/views/modules/asset/editor/comment/index.html?assetid=$asset.id&sourcepath=$asset.sourcepath&hitssessionid=#esc($hitssessionid)" class="comments">$!comments.size()<span>&nbsp;</span></a>
                                            
                     </div>
                 </div>
                 <div class="asset-details-more">
-                    <p style="line-height: 25px; text-align: left; color: #fff;">
+                    <p>
                         #if ($asset.getKeywords().size() > 0)
-                            <strong>Tags</strong><br/>
+                            <h5 style="margin-bottom:5px"><strong>[[Tags]]</strong></h5>
+                            <div class="tageditor-viewer">
                             #foreach ($tag in $asset.getKeywords())
-                                #if ( $velocityCount <= 10 )
+                                #if ( ${foreach.count} <= 10 )
                                 <a href="$home$apphome/views/search/search.html?field=keywords&operation=matches&keywords.value=$tag">$tag</a> 
-                                #elseif ( $velocityCount == 11 )
-                                    <a class="ajax tooltip" title="View All Tags" targetdiv="detaileditor" href="$home$apphome/views/modules/asset/editor/tags/index.html?assetid=$asset.id&hitssessionid=$hitssessionid&oemaxlevel=2">...</a>
+                                #elseif ( ${foreach.count} == 11 )
+                                    <a class="ajax tooltip" title="View All Tags" targetdiv="detaileditor" href="$home$apphome/views/modules/asset/editor/tags/index.html?assetid=$asset.id&hitssessionid=#esc($hitssessionid)&oemaxlevel=2">...</a>
                                 #end
                             #end
+                            </div>
+                            <div class="clearfix"></div>
                         #end
-                     </p>
-                     <p style="line-height: 25px; text-align: left; color: #fff; ">
+                     
+                     
                         #if ($asset.getCategories().size() > 0)
-                            <strong>Categories</strong><br/>
+                            <h5 style="margin:10px 0 5px"><strong>[[Categories]]</strong></h5>
+                            <div class="tageditor-viewer">
                             #foreach ($category in $asset.getCategories())
-                                #if ( $velocityCount <= 8 )
+                                #if ( ${foreach.count} <= 8 )
                                 <a href="$home$apphome/views/categories/${category.id}.html">$category</a> 
-                                #elseif ( $velocityCount == 9 )
-                                    <a class="ajax tooltip" title="View All Categories" targetdiv="detaileditor" href="$home$apphome/views/modules/asset/editor/categorize/index.html?assetid=$asset.id&hitssessionid=$hitssessionid&oemaxlevel=2">...</a>
+                                #elseif ( ${foreach.count} == 9 )
+                                    <a class="ajax tooltip" title="[[View All Categories]]" targetdiv="detaileditor" href="$home$apphome/views/modules/asset/editor/categorize/index.html?assetid=$asset.id&hitssessionid=#esc($hitssessionid)&oemaxlevel=2">...</a>
                                 #end
                             #end
+                            </div>
                         #end
-                     </p>
+                     
                      #set($contact = $mediaarchive.getSearcher("contact").query().exact("thumbnail", $asset.id).searchOne())
-                     <!-- Added for highlights -->
+                     
                      #if($contact)
-                      <p style="line-height: 25px; text-align: left; color: #fff; ">
-                        
-                            <strong>Contact</strong><br/>
-                                
-                                <a href="$home$apphome/views/modules/contact/edit/edit.html?id=${contact.id}&viewid=contactcontact_details&viewpath=contact/contactcontact_details&searchtype=contact&detailsreadonly=true&preview=true">$contact</a> 
-                                
-                        
-
-                     </p>
+                      <h5><strong>[[Contact]]</strong></h5>
+     	                 <p>          
+                         <a href="$home$apphome/views/modules/contact/edit/edit.html?id=${contact.id}&viewid=contactcontact_details&viewpath=contact/contactcontact_details&searchtype=contact&detailsreadonly=true&preview=true">$contact</a> 
+	                     </p>
                      #end
                      #if($canviewshoppingcart)
                      	#if($asset.shoppingcartlink)
-                     	<p style="line-height: 25px; text-align: left; color: #fff; ">
-                     		<strong>Shopping Cart</strong><br/>
+                     		<h5><strong>[[Shopping Cart]]</strong></h5>
+                     		<p>
                             $pages.include("/$applicationid/views/modules/asset/editor/editshoppingcart/shoppingcartbutton.html",$context)
-                        </p>
+                        	</p>
                         #end
                      #end
                 </div>

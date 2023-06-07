@@ -1,0 +1,53 @@
+<div class="eml-tab-content">
+<h2>[[Data Entities]]</h2>
+
+</div>
+<ul id="modules" class="fwlist modulelist">
+    
+    #set ( $modules = $searcherManager.getList($catalogid, "module") )
+   
+        #foreach ( $module in $modules )
+    <li>
+        <div  class="module">
+        <a href="$home$apphome/views/settings/modules/$module.id/info/module-setup.html?field=last_selected_module&last_selected_module.value=${module.id}">
+              <div class="modules-name">      <div style="margin-top: 16px" class="alias" title="Alias">#text($module)</div>            </div>        
+        </a>
+       
+        <div class="scan">
+             <a class="btn btn-sm btn-primary" href="$home$apphome/views/modules/${module.id}/index.html">Data</a>
+        </div>
+        </div>
+    </li>
+    #end
+    
+    <li class="add" style="padding:20px 15px; text-align:right">
+            <a class="btn btn-sm btn-primary" href="$home$apphome/views/settings/modules/setup/add-new-module.html">[[Add Module]]</a>
+    </li>
+    
+    <!-- 
+    <li class="auto">
+        <a href="$home$apphome/views/folders/folder-setup.html" class="folder">
+            <div class="name">
+                <div class="alias" title="Really Long Alias that is dumb and really long">Really Long Alias that is dumb and really long</div>
+                <div class="path" title="C:/Path/To/The/Files/Goes/Here">C:/Path/To/The/Files/Goes/Here</div>
+                <div class="last-activity">Last Scanned: 3:14 PM May 9, 2012</div>
+            </div>
+        </a>
+        <div class="scan">
+            <a class="btn">Scan</a>
+        </div>
+    </li>
+    <li class="manual">
+        <a href="$home$apphome/views/folders/folder-setup.html" class="folder">
+            <div class="name">
+                <div class="alias" title="Really Long Alias that is dumb and really long">Really Long Alias that is dumb and really long</div>
+                <div class="path" title="C:/Path/To/The/Files/Goes/Here">C:/Path/To/The/Files/Goes/Here</div>
+                <div class="last-activity">Last Scanned: 3:14 PM May 9, 2012</div>
+            </div>
+        </a>
+        <div class="scan">
+            <a class="btn">Scan</a>
+        </div>
+    </li>
+     -->
+</ul>               

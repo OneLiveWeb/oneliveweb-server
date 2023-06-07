@@ -1,9 +1,10 @@
-package assets
-import org.openedit.*
+package users
+
+import org.entermediadb.asset.MediaArchive
+import org.openedit.Data
 import org.openedit.data.Searcher
-import org.openedit.entermedia.MediaArchive
+import org.openedit.hittracker.HitTracker
 import org.openedit.profile.UserProfile
-import com.openedit.hittracker.*
 
 public void init()
 {
@@ -13,7 +14,7 @@ public void init()
 		
 		//Loop over every user profile and move the userid colum into the id column
 		HitTracker profiles = searcher.getAllHits();
-		profiles.setHitsPerPage(1000);
+		profiles.enableBulkOperations();
 		int ok = 0;
 		profiles.each
 		{

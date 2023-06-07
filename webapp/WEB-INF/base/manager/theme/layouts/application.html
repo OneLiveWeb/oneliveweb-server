@@ -1,4 +1,6 @@
-	<div class="container">
+<div id="application" data-user="$!user.getId()" data-home="$home" data-apphome="$apphome" data-themeprefix="${themeprefix}" data-browserlanguage="$!{browserlanguage}" data-mediadbappid="$!mediaarchive.getMediaDbId()">
+
+	<div id="emcontainer" class="container">
 		<div id="header">
 			<div id="logo"><a class="ir" href="$home$apphome/index.html">EnterMedia Manager</a></div>
 			<div id="user-status">
@@ -21,22 +23,32 @@
 ##                            <a href="$home$apphome${screen.path}">$screen</a>
 ##                        </li>
 ##                 #end
+			#if($user)
 		     <ul>
-		         <li><a href="$home$apphome/views/catalogs/index.html">Catalogs</a></li>
-##                 <li><a href="$home$apphome/views/applications/index.html">Applications</a></li>
+		     #set( $app = $content.get("managersection"))
+                 <li><a #if( $app == "sites") class="current" #end href="$home$apphome/views/sites/index.html">Sites</a></li>
 ##                 <li><a href="$home$apphome/views/applications/uploadapp.html">Import Application</a></li>
 		           <li><a href="$home$apphome/views/settings/translation/index.html">Translation</a></li>
-		         <li><a href="$home$apphome/views/update/index.html">Update Manager</a></li>
-		         <li><a href="$home$apphome/views/update/upload/index.html">Extension Uploads</a></li>
+		         <li><a href="$home$apphome/views/settings/lists/datamanager/index.html">Database</a></li>
+		           <li><a href="$home$apphome/views/settings/status/tools/index.html">Server</a></li>
+		         <li><a href="$home$apphome/views/settings/events/triggers/index.html">Scheduler</a></li>
+		         <li><a #if( $app == "update") class="current" #end  href="$home$apphome/views/update/index.html">Upgrade</a></li>
+		         <li><a #if( $app == "update") class="current" #end  href="$home$apphome/views/update/sync/sync.html">Merge Server Versions</a></li>
+		         
+##		         <li><a href="$home$apphome/views/update/upload/index.html">Uploads</a></li>
 
 		     </ul>
+		     #end
 
 		</div>
+		<div id="errordiv"></div>
 		
 		<div id="main-content" class="clearfix">
 		  $pages.includeContent()
 		</div>
 		<div id="footer" class="col12 clearfix">
-			<p>Powered by EnterMedia | <a href="http://www.entermediasoftware.com">www.entermediasoftware.com</a></p>
+			<p>[[Powered by EnterMedia]] | <a href="http://entermediadb.org">entermediadb.org</a></p>
 		</div>
 	</div>
+</div>
+	

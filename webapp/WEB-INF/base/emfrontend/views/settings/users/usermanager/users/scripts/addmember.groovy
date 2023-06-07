@@ -1,23 +1,19 @@
-import com.openedit.users.Group;
-
 import org.openedit.Data
+import org.openedit.OpenEditException
 import org.openedit.data.Searcher
+import org.openedit.users.Group
+import org.openedit.users.User
+import org.openedit.users.UserManager
 
-import com.openedit.OpenEditException
-import com.openedit.page.manage.*
-import com.openedit.users.Group
-import com.openedit.users.User
-import com.openedit.users.UserManager
+import org.openedit.page.manage.*
 
 public Group getGroup()
 {
 	String groupid = context.getRequestParameter("groupid");
-	
-	if (groupid == null)
+	if( groupid == null)
 	{
-		throw new OpenEditException("mastergroup not set");
+		return null
 	}
-	
 	Group group = userManager.getGroup(groupid);
 	if (group == null)
 	{
@@ -27,12 +23,12 @@ public Group getGroup()
 	return group;
 }
 
-public User getUser(Group inGroup)
+public User getUser()
 {
 	String email = context.getRequestParameter("email.value");
 	String emailcheck = context.getRequestParameter("emailmatch.value");
 	
-	if (email == null || !email.equals(emailcheck))
+	if ((email != null && emailcheck != null) && !email.equals(emailcheck))
 	{
 		throw new OpenEditException("E-mail addresses don't match.");
 	}
@@ -51,14 +47,9 @@ public User getUser(Group inGroup)
 			throw new OpenEditException("passwords don't match");
 		}
 			
-		String username = context.getRequestParameter("userName.value");
+		String username = context.getRequestParameter("id.value");
 		newuser = userManager.createUser( username, password);
 		newuser.setVirtual(false);
-	}
-	
-	if (!newuser.isInGroup(inGroup))
-	{
-		newuser.addGroup(inGroup);
 	}
 	
 	return newuser;
@@ -97,8 +88,7 @@ public Data saveUserProfile(String inUserId)
 
 public void addUser()
 {
-	Group group = getGroup();
-	User newuser = getUser(group);
+	User newuser = getUser();
 	
 	Searcher usersearcher = searcherManager.getSearcher(catalogid,"user");
 	
@@ -111,6 +101,12 @@ public void addUser()
 	usersearcher.saveDetails(context,fields,newuser,newuser.getId());
 	
 	saveUserProfile(newuser.getId());
+	
+	context.putPageValue("userName",newuser.getId());
+	context.putPageValue("selectedUser",newuser);
+	
+//	MediaArchive
+//	mediaArchive.fire
 }
 
 public void editUser()
@@ -126,17 +122,6 @@ public void editUser()
 		
 		//save the user object
 		Searcher usersearcher = searcherManager.getSearcher(catalogid,"user");
-		String groupid = context.findValue("mastergroup");
-		Group mastergroup = usermanager.getGroup(groupid);
-		if( mastergroup == null)
-		{
-			mastergroup = usermanager.createGroup(groupid);
-		}
-		if( !edituser.isInGroup(mastergroup) )
-		{
-			edituser.addGroup(mastergroup);
-			log.info("added group to user");
-		}
 
 		List details = usersearcher.getDetailsForView("user/simpleuseredit", loggedin);
 		

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <page>
-
-  <property name="fallbackdirectory">/WEB-INF/base/emfrontend</property>
+  <property name="fallbackdirectory">/WEB-INF/base/emfrontend2</property>
   <property name="section">home</property>
   <property name="title">EnterMedia Manager</property>
   <property name="catalogid">system</property>
@@ -29,20 +28,40 @@
 	<permission name="viewsettings">
 		<group name="administrators" />
 	</permission>
+
+<!-- Jquery -->
+	<script id="jquery" src="/${applicationid}/components/javascript/jquery-3.3.1.min.js"/>
+	<script id="jquery-ui" src="/${applicationid}/components/javascript/jquery-ui/1.12/jquery-ui.min.js"/>
+	<style id="jqueryui" href="/${applicationid}/components/javascript/jquery-ui/1.12/jquery-ui.css"/>
+	<script id="jquery-ui-i18n" src="/${applicationid}/components/javascript/jquery-ui/i18n/jquery-ui-i18n.js"/>
+	
+	<script id="jquery-form" src="/${applicationid}/components/javascript/jquery.form.js"/>
+	<script id="jquery-liveajax" src="/${applicationid}/components/javascript/liveajax/liveajax.js"/>
+	<script id="jquery-validate" src="/${applicationid}/components/javascript/jquery.validation/jquery.validate.js"/>
+	<script id="validateandedit" src="/${applicationid}/components/javascript/validateandedit.js"/>
+	  
+  <script id="jplayer"  src="/${applicationid}/components/javascript/jquery.jplayer.min.js">  </script>
   
+	<!-- Bootstrap -->
+	<script id="bootstrap-popper" src="/${applicationid}/components/javascript/bootstrap/4/js/popper.min.js" />
+	<script id="bootstrap" src="/${applicationid}/components/javascript/bootstrap/4/js/bootstrap.min.js" />
+	<style id="bootstrap" href="/${applicationid}/components/javascript/bootstrap/4/css/bootstrap.min.css" />
+	<style id="fonts-css"  href="/${applicationid}/components/javascript/bootstrap/fonts/css/fontawesome-all.min.css"/>
   
-  <style id="app-css" href="${themeprefix}/styles/theme.css"/>
-  <script id="jquery" src="/${applicationid}/components/javascript/jquery-1.6.1.js"/>
-  <script id="jquery-ui" src="/${applicationid}/components/javascript/jquery-ui-1.8.12.custom.min.js"/>
-  
-  <script id="bootstrap" src="/${applicationid}/components/bootstrap/js/bootstrap.js" />
- <style id="bootstrap" href='/${applicationid}/components/bootstrap/css/bootstrap.min.css' />
-  
-  
-  <script id="jquery-form" src="/${applicationid}/components/javascript/jquery.form.js"/>
-  <script id="jquery-livequery" src="/${applicationid}/components/javascript/jquery.livequery.js"/>
   <script id="entermedia" src="/${applicationid}/components/javascript/entermedia.js"/>
+
+  <script id="theme-js" src="/${applicationid}/components/javascript/ui-components.js"/>
+  <script id="emtree" src="/${applicationid}/components/javascript/emtree/emtree.js"/>
+  <script id="detaileditor" src="/${applicationid}/components/xml/detaileditor.js"/>
+  <script id="results" src="/${applicationid}/components/javascript/results.js"/>
+  
+	<script id="select2" src="/${applicationid}/components/javascript/select2/4.0.6/js/select2.full.js"/>
+	<style  id="select2-css" href="/${applicationid}/components/javascript/select2/4.0.6/css/select2.css"/>
+	
+  <style id="app-css" href="${themeprefix}/styles/theme.css"/>
+  <style id="results" href="${themeprefix}/styles/pages/results.css"/>
+  
   <inner-layout>${themeprefix}/layouts/application.html</inner-layout>
-
-
+  
+  <property name="skipvirtualhost">true</property>
 </page>

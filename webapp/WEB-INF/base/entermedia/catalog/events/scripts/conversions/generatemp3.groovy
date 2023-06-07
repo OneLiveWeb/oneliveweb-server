@@ -1,11 +1,8 @@
-import com.openedit.page.Page
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.MediaArchive
+import org.openedit.Data
 import org.openedit.data.Searcher
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
-import org.openedit.*;
-
-import com.openedit.WebPageRequest;
-import com.openedit.hittracker.*;
+import org.openedit.hittracker.SearchQuery
 
 public void init()
 {
@@ -35,7 +32,7 @@ public void init()
 		pageManager.clearCache();
 		
 		log.info("now kick off import event");
-		archive.fireMediaEvent("importing/assetsimported", user);
+		archive.fireMediaEvent("importing","assetsimported", null,user);
 }
 
 init();

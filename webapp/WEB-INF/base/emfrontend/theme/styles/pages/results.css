@@ -140,7 +140,6 @@ div#hiddenoverlay .playerarea {
 }
 
 /* PAGINATION */
-
 #emresultscontent #pages {
     float: right;
     margin: 10px 10px 0 0;
@@ -214,7 +213,7 @@ div#hiddenoverlay .playerarea {
 
 #emresultscontent #pages ul li.pagenav {
 
-	width: 17px;
+	width: 22px;
 
 }
 
@@ -234,7 +233,12 @@ div#hiddenoverlay .playerarea {
 
 }
 
-a span.glyphicon {
+.resultstablenav #pages { margin:0!important; }
+.resultstablenav {padding-bottom:10px;}
+.resultstablenav .resultmenuitem { line-height: 28px; height: 28px;}
+.resultstablenav .edit-columns { padding-top:4px}
+
+/*a span.glyphicon {
 
 	font-size: 10px;
     float: right;
@@ -245,7 +249,7 @@ a span.glyphicon {
     color: #595959;
 
 }
-
+*/
 /* STACKED VIEW OVERLAY */
 
 #hiddenoverlay div.jp-audio {
@@ -265,37 +269,24 @@ a span.glyphicon {
 	width: 100%;
 
 }
+.goleftclick, .gorightclick {
+	display: inline;
+}  
 
-#goleftclick span.glyphicon {
+.goleftclick span.glyphicon {
 
-	font-size: 50px;
-
+	font-size: 30px;
+	color: rgb(255,255,255);
+	display: inline;
 }
 
-#gorightclick span.glyphicon {
+.gorightclick span.glyphicon {
 
-	font-size: 50px;
-
+	font-size: 30px;
+	color: rgb(255,255,255);
+	display: inline;
 }
 
-.overlay-margin span.overlay-nav {
-
-	font-size: 50px;
-	color: rgb(200,200,200);
-
-}
-
-span.glyphicon-triangle-right.overlay-nav {
-
-	float: right;
-}
-
-.overlay-nav {
-
-	margin: 30px;
-	margin-top: 400px;
-
-}
 
 #emthumbholder img.mimethumb {
 
@@ -307,7 +298,7 @@ span.glyphicon-triangle-right.overlay-nav {
 
 div#hiddenoverlay .overlay-margin {
 
-	width: 100px;
+	width: 90px;
 	position: relative;
 	float: left;
 
@@ -319,16 +310,19 @@ div#hiddenoverlay .overlay-margin {
 
 }
 
-div.masonry-grid-cell span.emdropshadow 
+div.masonry-grid-cell .grid-thumbimage 
 {
-	display: inline;
+	background-color:#fff;
 	padding: 0px;
 	margin:0px;
 	border:0px;
+	text-align: center;
 }
-div.masonry-grid-cell span.emdropshadow img
+div.masonry-grid-cell .grid-thumbimage img.imagethumb
 {
-	width:100%;
+	display: inline-block;
+    margin: 0 auto;
+    vertical-align: top;
 }
 
 
@@ -490,18 +484,17 @@ div.masonry-grid-cell span.emdropshadow img
 
 .masonry-grid
 {
+
+background-color: #eee;
 }
 
 .masonry-grid-cell
 {
 	position: relative;
-	margin: 6px;
 	padding: 0;
 	border: 0;
 	text-overflow: ellipsis;
-	background-color: white;
 	overflow:hidden;
-	
 }
 .masonry-grid-cell .grid-thumbimage
 {
@@ -551,6 +544,7 @@ div.masonry-grid-cell span.emdropshadow img
 {
 	position: absolute;
 	bottom: 0px;
+	line-height:20px;
 	background-color: rgba(20,20,20,.4);
 	width: 100%;
 	border-radius: 0 0 .2em .2em;
@@ -569,6 +563,10 @@ div.masonry-grid-cell span.emdropshadow img
             
         }
         
+.masonry-grid-cell .typedocument 
+{
+	 opacity:1;
+}
 
 .masonry-grid-cell:hover .caption {
             opacity:1;
@@ -593,7 +591,7 @@ div.masonry-grid-cell span.emdropshadow img
 }
 .playerarea
 {
-	text-align: center;
+
 }
 .hiddenoverlay > div
 {
@@ -614,7 +612,6 @@ div.masonry-grid-cell span.emdropshadow img
 	
 }
 
-
 .overlay-popup.largeicon
 {
 	font-size:30px;
@@ -630,7 +627,7 @@ div.masonry-grid-cell span.emdropshadow img
 	font-size:30px;
 	color: rgb(200,200,200);
 	position: fixed;
-	right:40px;
+	right:42px;
 	top: 10px;
 	z-index: 10001;
 }
@@ -670,3 +667,46 @@ span.glyphicon-triangle-left.overlay-nav {
     height: 68px;
 
 }
+
+.masonry-grid .stacked-field-info {
+    text-align: left; 
+    color:#efefef; 
+    line-height:1.8;
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap;
+}
+#embody .masonry-grid .stacked-field-info a {
+    font-weight: normal;
+    color: #fff;
+    font-size: 12px;
+    text-shadow:0 0 2px #121212;
+}
+
+#badgecontainer {  
+	height: 0px;
+	position: relative;
+}
+.badgetargetsmall {
+	position: absolute;
+	bottom: 0px;
+	right: 10px;
+}
+.badgetarget {
+	position: absolute;
+	bottom: 0px;
+	right: 70px;
+}
+
+
+.embadge {	
+	display: block;	
+	float: right;
+	width: 25px;
+	height: 30px;
+	margin:0px;
+	margin-left: 4px;	
+	background-color: transparent;
+	background-size: 25px 30px;
+}
+

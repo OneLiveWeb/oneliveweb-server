@@ -1,0 +1,25 @@
+#if(!$library)
+	#set($library = "Search Results")
+#end
+<div class="collectionshome">
+	<div class="collectionshome-header">
+		<h3 class="text-center">$library</h3>
+	</div>
+	<div id="lib_${library.id}_collectionresults" class="collectionshomeresults">
+		#set( $searcher = $mediaarchive.getSearcher("librarycollection") )
+		
+		$context.putPageValue("searcher",$searcher)
+		#set ($details = $searcher.getDetailsForView("librarycollection/librarycollectionresultstable", $userprofile))
+		$context.putPageValue("details",$details)
+		$context.putPageValue("module","librarycollection")
+		
+		#if ($hits.totalPages == 0)
+			[[No Results Found]]
+		#else
+			$pages.include("${apphome}/components/collections/cards.html", $context)
+		#end
+		<div class="clearfix"></div>
+	</div>	
+</div>
+
+

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project basedir="." default="default" name="entermedia-server">
 
-  <target name="default" depends="clean, update-dependencies, compile, jar, junit, javadoc, source, war"/>
+  <target name="default" depends="clean, update-dependencies, compile, jar, javadoc, source, war"/>
     <target name="dependency" depends="default"/>
     
 	<property name="appname" value="${ant.project.name}"/>
@@ -37,6 +37,8 @@
 	<property name="deployDir" value="deploy"/>
   	<property name="report" value="${deployDir}"/>
 	<property name="branch" value="" />
+	<property name="remotehome" value="http://dev.entermediasoftware.com/jenkins/job" />
+
 	
 	<!-- A convenience variable for documentation output -->
 	<property name="versionedApp" value="${appname}-${version}"/>
@@ -60,10 +62,15 @@
        			<include name="entermedia/_site.xconf" />
         		<include name="*.*" />
     		</fileset>
+		</copy>	
+		<copy todir="${wardir}/WEB-INF/"  preservelastmodified="true">
+			<fileset dir="${basedir}">
+    			<include name="version.txt" />
+			</fileset>
     	</copy>
 
   	<mkdir dir="${build}/tmp/" />
-	<get dest="${build}/tmp/oesite.war" src="http://dev.entermediasoftware.com/jenkins/job/${branch}entermedia/lastSuccessfulBuild/artifact/deploy/oesite.war"  usetimestamp="true" />
+	<get dest="${build}/tmp/oesite.war" src="${remotehome}/em10_entermedia/lastSuccessfulBuild/artifact/deploy/oesite.war"  usetimestamp="true" />
 	<unwar src="${build}/tmp/oesite.war" dest="${build}/tmp/" />
 	<copy todir="${wardir}/WEB-INF/lib" preservelastmodified="true">
 		<fileset dir="${build}/tmp/WEB-INF/lib"	>
@@ -77,10 +84,11 @@
  	<copy todir="${build}/compile">
 		<fileset dir="${src}">
 		  <include name="*.xml"/>
+		  <include name="*.properties"/>
 		</fileset>
 	</copy>
 
-    <javac debug="true" destdir="${build}/compile" srcdir="${src}"  target="1.7">
+    <javac debug="true" destdir="${build}/compile" srcdir="${src}"  target="1.8" source="1.8">
       <classpath>
       	  <!--      <fileset file="/home/cburkey/eiiprojects/anthill/Cumulus_6_Java_SDK/CumulusJC.jar">
       	 </fileset>
@@ -125,11 +133,7 @@
     </javac>
   </target>
   
-  	<!-- 
-		========================================================================
-		Jar classes for the main app, excluding unit tests.
-		========================================================================
-	-->	  
+ 
 	<target name="jar">
 		<mkdir dir="${wardir}/WEB-INF/lib/" />
 		<mkdir dir="${deployDir}/builds/" />
@@ -150,9 +154,8 @@
     
   <target name="junit">
   	
-    <javac debug="true" destdir="${build}/compile" srcdir="${testsrc}" target="1.7">
+    <javac debug="true" destdir="${build}/compile" srcdir="${testsrc}" target="1.8">
       <classpath>
-<!--      	<fileset file="/home/cburkey/eiiprojects/anthill/Cumulus_6_Java_SDK/CumulusJC.jar"/> -->
         <fileset dir="${lib}" >
             <include name="*.jar"/>
             <include name="compile/*.jar"/>
@@ -168,14 +171,9 @@
   	<echo>JUnit report is located: ${report}/junit.xml</echo>
 	
   	<junit haltonfailure="true" showoutput="true" printsummary="true" fork="true" maxmemory="256m">
-  		<env key="LD_LIBRARY_PATH" path="/home/cburkey/eiiprojects/anthill/libstdc++5:/home/cburkey/eiiprojects/anthill/Cumulus_6_Java_SDK/lib" /> 
+  		<env key="LD_LIBRARY_PATH" path="" /> 
   		<sysproperty key="oe.root.path" value="${basedir}/webapp"/>
   	  <classpath>
-  <!--	  <fileset file="/home/cburkey/eiiprojects/anthill/Cumulus_6_Java_SDK/CumulusJC.jar"/>
-  	  	<fileset dir="${lib}">
-        <include name="**/*.jar"/>
-      </fileset>
-   -->     
   	  	<fileset dir="${wardir}/WEB-INF/lib/">
         <include name="*.jar"/>
      </fileset>
@@ -188,7 +186,7 @@
         </fileset>
 
     </classpath>
-  		<test name="org.openedit.entermedia.AllTests" outfile="./junit" todir="${report}">
+  		<test name="org.entermediadb.AllTests" outfile="./junit" todir="${report}">
   			<formatter type="xml"/>
   		</test>
   	</junit>

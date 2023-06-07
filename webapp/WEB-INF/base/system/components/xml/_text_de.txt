@@ -1,5 +1,9 @@
-#
-#Thu Feb 12 16:17:32 EST 2015
-No\ details\ available\ for\ this\ view.\ \ Please\ configure\ your\ view\ settings.=keine Daten zur Ansicht zur Verfügung; bitte bearbeiten Sie die Ansichtsvorgaben. 
+#Fri Sep 21 13:32:18 EDT 2018
+New=Neu
+404\ on\ view=404 in Sicht
+No\ details\ available\ for\ this\ view.\ \ Please\ configure\ your\ view\ settings.=Keine Details zur Ansicht zur Verfügung - bitte bearbeiten Sie die Ansichtseinstellungen.
+Edit=Bearbeiten
+No\ values\ found=Keine Ergebnisse gefunden
+Add\ New=Neu hinzufügen
 required=erforderlich
 

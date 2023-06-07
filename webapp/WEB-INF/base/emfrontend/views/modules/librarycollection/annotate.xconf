@@ -1,5 +1,5 @@
 <page>
-	<inner-layout>${themeprefix}/layouts/collectionlayout.html</inner-layout>
+	<inner-layout>${themeprefix}/layouts/collectionfeedlayout.html</inner-layout>
 	<property name="hitsname">hits</property>
 	<property name="searchtype">asset</property>
 	
@@ -14,7 +14,7 @@
 	</path-action>
 	
 	  <permission name="view">
-    		<action name="ProjectModule.checkLibraryPermission" />
+    		<action name="ProjectModule.checkViewCollection" />
     </permission>
 	
 	<style id="uploadstyle" href="${themeprefix}/styles/pages/upload.css" />
@@ -30,8 +30,8 @@
     <style id="annotations" href="/${applicationid}/components/annotations/ajax/css/annotations.css" />
     <style id="colorpickercss" href="/${applicationid}/components/javascript/colorpicker-master/jquery.colorpicker.css"/>
     
- 
-	
+     <property name="defaulttab">emannotationstab</property>
+ 	
 	<!-- load in lodash for now, can replace these calls later if needed -->
     <script id="lodash" src="/${applicationid}/components/annotations/vendor/lodash/lodash.js"></script>
     <script id="annotate-main" src="/${applicationid}/components/annotations/ajax/main.js"></script>

@@ -1,20 +1,17 @@
-package library;
+package library
+
+import org.entermediadb.asset.Category
+import org.entermediadb.asset.MediaArchive
 import org.openedit.Data
 import org.openedit.data.Searcher
-import org.openedit.entermedia.MediaArchive
-
-import com.openedit.hittracker.HitTracker
-import com.openedit.hittracker.SearchQuery;
-import com.openedit.page.Page
-import com.openedit.page.manage.*
-import com.openedit.util.Exec
-import com.openedit.util.ExecResult
+import org.openedit.hittracker.HitTracker
 
 public void init() {
 	String id = context.getRequestParameter("id");
 
 	Data library = context.getPageValue("data");
-	MediaArchive mediaArchive = (MediaArchive)context.getPageValue("mediaarchive");
+	MediaArchive archive = (MediaArchive)context.getPageValue("mediaarchive");
+	
 	if(library == null){
 		if( id == null) {
 			id = context.getRequestParameter("id.value");
@@ -22,63 +19,81 @@ public void init() {
 		if( id == null) {
 			return;
 		}
-		library = mediaArchive.getSearcher("library").searchById(id);
+		library = archive.getSearcher("library").searchById(id);
 	}
-
 
 	if( library != null ) 
 	{
-		Searcher libraryusers = mediaArchive.getSearcher("libraryusers");
-		String username = context.getUserName(); 
-		if(username != null)
-		{
-			SearchQuery query = libraryusers.createSearchQuery().append("libraryid", library.id).append("userid", username);
-			Data permission = libraryusers.searchByQuery(query);
-			if(permission == null)
-			{
-				Data newentry = libraryusers.createNewData();
-				newentry.setId(libraryusers.nextId());
-				newentry.setProperty("userid", username);
-				newentry.setProperty("libraryid", library.getId());
-				//newentry.setProperty("libraryrole", "owner");//not used yet.
-				newentry.setSourcePath(library.getSourcePath());
-				libraryusers.saveData(newentry, context.getUser());
-
-			}
-		}
+		
+		String username = context.getUserName();
 		String owner = library.get("owner");
-		if(owner == null){
-			library.setProperty("owner", username);
-			library.setProperty("ownerprofile",context.getUserProfile().getId()); 
-			mediaArchive.getSearcher("library").saveData(library, null);
-		}
-
-		String gitcheckout = library.get("git");
-		String localfolder = library.get("folder");
-		//Create Git Repo and check it out
-		if( gitcheckout != null && localfolder != null)
+		if(owner == null)
 		{
-			//We do not use division, too complicated
-			String fullpath = "/WEB-INF/data/" + mediaArchive.getCatalogId() + "/originals/" + localfolder;
-			Page repo = pageManager.getPage(fullpath + "/.git");
-			if( !repo.exists() )
+			library.setProperty("owner", username);
+		}	
+		
+		boolean isprivate = Boolean.parseBoolean(library.get("privatelibrary"));
+		
+		if( !isprivate )
+		{
+			if( library.getValue("viewusers") != null ||  library.getValue("viewroles") != null ||  library.getValue("viewgroups") != null)
 			{
-				Exec exec = (Exec)mediaArchive.getModuleManager().getBean("exec");
-				List com = new ArrayList();
-				com.add(gitcheckout);
-				
-				String checkoutpath = pageManager.getPage(fullpath).getContentItem().getAbsolutePath();
-				com.add(checkoutpath);
-				log.info("setting up a repo");
-				
-				ExecResult result = exec.runExec("gitaddrepository", com);
-				if( !result.isRunOk() )
-				{
-					context.putPageValue("savemessageerror","Could not create git path. Make sure you checkout into an empty location");
+				library.setValue("privatelibrary", true);
+			}
+		}	
+		//library.setProperty("ownerprofile",context.getUserProfile().getId()); 
+		log.info("saving library $library");
+		archive.getSearcher("library").saveData(library, null);
+	}
+	
+	if(library.getValue("autocreatecollections") == true){
+		String categoryid = library.categoryid;
+		Category cat = archive.getCategory(categoryid);
+		Searcher collectionsearcher = mediaarchive.getSearcher("librarycollection");
+		
+		if(cat != null){
+			cat.getChildren().each{
+				Category target = it;
+				Data collection = collectionsearcher.searchByField("rootcategory", target.getId());
+				if(collection == null){
+					collection = collectionsearcher.createNewData();
+					collection.setValue("rootcategory", target.getId());
+					collection.setValue("library", library.getId());
+					
+					collection.setName(target.getName());
+					collectionsearcher.saveData(collection);
+					
+
 				}
+				
 			}
 		}
+		
 	}
+	
+	String divid = library.getValue("division");
+	//log.info("Found division");
+	
+	if(divid){
+		Searcher collectionsearcher = mediaarchive.getSearcher("librarycollection");
+		
+		HitTracker cols = collectionsearcher.query().exact("library", library.getId()).search();
+		cols.each{
+			if(!divid.equals(it.division)){
+	log.info("Resetting division to ${it.division}");
+
+				Data real = collectionsearcher.loadData(it);
+				real.setValue("division", divid);
+				collectionsearcher.saveData(real);
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
 }
 
 init();

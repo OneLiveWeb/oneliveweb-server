@@ -1,16 +1,17 @@
-import org.entermedia.email.PostMail
-import org.entermedia.email.TemplateWebEmail
-import org.openedit.Data
-import org.openedit.data.*
-import org.openedit.entermedia.MediaArchive
-import org.openedit.entermedia.util.CSVWriter
-import org.openedit.util.DateStorageUtil
+package data;
 
-import com.openedit.OpenEditException
-import com.openedit.WebPageRequest
-import com.openedit.hittracker.HitTracker
-import com.openedit.page.Page
-import com.openedit.util.Replacer
+import org.entermediadb.asset.MediaArchive
+import org.entermediadb.asset.util.CSVWriter
+import org.entermediadb.email.PostMail
+import org.entermediadb.email.TemplateWebEmail
+import org.openedit.Data
+import org.openedit.WebPageRequest
+import org.openedit.data.PropertyDetail
+import org.openedit.data.SearcherManager
+import org.openedit.hittracker.HitTracker
+import org.openedit.page.Page
+import org.openedit.util.DateStorageUtil
+import org.openedit.util.Replacer
 
 public void init(){
 
@@ -37,6 +38,7 @@ public void init(){
 	}
 
 	HitTracker hits = searcher.getAllHits(context);
+	hits.enableBulkOperations();
 	String exportpath = context.findValue("exportpath");
 
 	HashMap map = new HashMap();

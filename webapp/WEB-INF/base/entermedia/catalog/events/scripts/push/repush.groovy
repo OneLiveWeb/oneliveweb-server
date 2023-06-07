@@ -1,12 +1,11 @@
-package push;
-import java.text.SimpleDateFormat
+package push
 
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.MediaArchive
+import org.openedit.Data
 import org.openedit.data.Searcher
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
-import org.openedit.*;
-
-import com.openedit.hittracker.*;
+import org.openedit.hittracker.HitTracker
+import org.openedit.hittracker.SearchQuery
 
 public void init()
 {
@@ -24,7 +23,7 @@ public void init()
 		q.addSortBy("id");
 		HitTracker assets = targetsearcher.search(q);
 
-		assets.setHitsPerPage(1000);
+		assets.enableBulkOperations();
 
 		int count = 0;
 		log.info("Starting ${assets.size()} with ${q}"); 

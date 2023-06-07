@@ -19,12 +19,15 @@
 				#set($fileformat = $asset.fileformat) ##need to get an example fileformat for each filetype
 				#set($filetype = $searcherManager.getData($catalogid,"assettype",$asset.assettype))
 				#if(!$filetype)
-					#set($filetype="None")
+					#set($filetype="[[None]]")
 				#end
 				#set( $omit = $invaliditems.contains("${asset.id}"))
 				#set($found = false)
 				#foreach( $ft in $filetypes)
-					#if ($ft.get(0).equals($filetype))
+
+					#set( $ftname = $filetype.getName($context.getLocale()) )
+					#if ($ft.get(0).equals($ftname))
+						
 						#set($num = $numberutils.toInt("${ft.get(1)}"))
 						#set($num = $num + 1)
 						#set($null = $ft.set(1,"$num"))
@@ -33,14 +36,15 @@
 					#end
 				#end
 				#if(!$found)
-					#set($null = $filetypes.add([$filetype,"1",$fileformat,"${omit}"]))
+					#set( $ftname = $filetype.getName($context.getLocale()) )
+					#set($null = $filetypes.add([$ftname,"1",$fileformat,"${omit}",$filetype.getId()]))
 				#end
 				##add hidden inputs
 				<input type="hidden" name="itemid" value="$item.id"/>
 				<input type="hidden" name="field" value="presetid"/>
-				<input type="hidden" name="${item.id}.presetid.value" value=""/>
+				<input type="hidden" name="${item.id}.presetid.value" />
 				<input type="hidden" name="field" value="itemfiletype"/>
-				<input type="hidden" name="${item.id}.itemfiletype.value" value="${filetype}"/>
+				<input type="hidden" name="${item.id}.itemfiletype.value" value="$filetype.getName($context.getLocale())"/>
 				##add extra variables for specific publishers
 				#if ($publishtype.publishtype == "youtube")
 					<input type="hidden" name="assetfield.value" value="${asset.id}">
@@ -59,19 +63,20 @@
 				#set($num = $ft.get(1))
 				#set($fileformat = $ft.get(2))
 				#set($omit = $ft.get(3))
+				#set($ftid = $ft.get(4))
 				
 				##include header if youtube
 				#if($publishtype.publishtype == "youtube")
 				<tr>
 					<th>&nbsp;</th>
-					<th>YouTube Category</th>
-					<th>Format</th>
+					<th>YouTube [[Category]]</th>
+					<th>[[Format]]</th>
 				</tr>
 				#end
 				<tr>
 					<td>
 						<input type="hidden" name="field" value="filetype"/>
-						<input type="hidden" name="filetype.value" value="${filetype}"/>
+						<input type="hidden" name="filetype.value" value="$filetype"/>
 						#if($omit == "true")
 							Selected $num $filetype
 						#else
@@ -115,13 +120,13 @@
 						#set($null = $presetquery.addSortBy("ordering"))
 						#set( $results = $presetsearcher.search($presetquery) )
 						#if($canconvert || $candownloadfpo)
-					  		<select name="${filetype}.presetid.value">
+					  		<select name="${ftid}.presetid.value">
 							#foreach ($preset in $results)
 								<option value="$preset.id">$preset</option>
 							#end
 						</select>
 						#else
-							<input type="hidden" name="${filetype}.presetid.value" value="0">
+							<input type="hidden" name="$filetype.getName($context.getLocale()).presetid.value" value="0">
 						#end	
 					</td>
 					#end
@@ -132,8 +137,8 @@
 		</div>
 	</div>
 #if($invaliditems.size() == $orderitems.size())
-	<input class="btn small" style="float: right" type="button" value="Cancel" onclick="window.history.back()"/>
+	<input class="btn small" style="float: right" type="button" value="[[Cancel]]" onclick="window.history.back()"/>
 #else
-	<input class="btn small" style="float: right" type="submit" value="Next" />
+	<input class="btn small" style="float: right" type="submit" value="[[Next]]" />
 #end
 </form>     

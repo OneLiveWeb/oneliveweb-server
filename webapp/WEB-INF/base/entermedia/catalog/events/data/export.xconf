@@ -1,7 +1,7 @@
 <page>
 	<path-action name="PageValue.loadPageVariable"  bean="searcherManager" alltypes="true"/>
-	<page-action bean="replacer" name="PageValue.loadPageVariable" class="com.openedit.util.Replacer" alltypes="true" allowduplicates="true"/>
-	<property name="eventname">Export Asset CSV</property>	
+	<page-action bean="replacer" name="PageValue.loadPageVariable" class="org.openedit.util.Replacer" alltypes="true" allowduplicates="true"/>
+	<property name="eventname">Save Asset CSV</property>	
 	
 	<path-action name="Script.run" alltypes="true" >
 		<script>/${catalogid}/events/scripts/data/generatecsv.groovy</script>
@@ -11,7 +11,7 @@
 	<property name="exportpath">/WEB-INF/data/${catalogid}/exports/assetexport-${date}.csv</property>
 	<property name="view">asset/export</property>
 	<property name="sendnotifications">true</property>
-	<property name="to">ian@ijsolutions.ca</property>
+	<property name="to">xxx@xxx.ca</property>
 
 	
 </page>

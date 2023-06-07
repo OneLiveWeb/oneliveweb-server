@@ -10,11 +10,7 @@
 	<script id="imgareaselect" src="/${applicationid}/components/javascript/jquery.imgareaselect.js"/>
     <style id="imgareaselect-css" href="${themeprefix}/styles/jquery/imgareaselect-default.css"/>
 
+	<!-- jcrop tool -->
+  
 	
-	<permission name="view">
-		<not>
-			<pagevalue name="canviewasset" equals="false" />
-		</not>
-	</permission>
-
 </page>

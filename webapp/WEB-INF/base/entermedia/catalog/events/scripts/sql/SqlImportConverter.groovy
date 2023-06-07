@@ -1,38 +1,29 @@
 package sql;
 
-/*
-* Created on Mar 24, 2006
-*/
+import java.sql.Connection
+import java.sql.Driver
+import java.sql.DriverManager
+import java.sql.ResultSetMetaData
+import java.sql.Statement
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.dom4j.Element;
-import org.openedit.data.PropertyDetail;
-import org.openedit.data.PropertyDetails;
-import org.openedit.entermedia.Asset;
-import org.openedit.entermedia.CatalogConverter;
-import org.openedit.entermedia.Category;
-import org.openedit.entermedia.ConvertStatus;
-import org.openedit.entermedia.MediaArchive;
-import org.openedit.xml.XmlArchive;
-import org.openedit.xml.XmlFile;
-
-import com.openedit.ModuleManager;
-import com.openedit.OpenEditException;
-import com.openedit.page.manage.PageManager;
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
+import org.dom4j.Element
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.BaseCategory
+import org.entermediadb.asset.CatalogConverter
+import org.entermediadb.asset.Category
+import org.entermediadb.asset.ConvertStatus
+import org.entermediadb.asset.MediaArchive
+import org.openedit.ModuleManager
+import org.openedit.OpenEditException
+import org.openedit.data.PropertyDetail
+import org.openedit.data.PropertyDetails
+import org.openedit.page.manage.PageManager
+import org.openedit.xml.XmlArchive
+import org.openedit.xml.XmlFile
 
 public class SqlImportConverter extends CatalogConverter
 {
@@ -97,7 +88,7 @@ public class SqlImportConverter extends CatalogConverter
 	   Category parentCategory = inArchive.getCategoryArchive().getCategory(parentCategoryId);
 	   if (parentCategory == null)
 	   {
-		   parentCategory = new Category();
+		   parentCategory = new BaseCategory();
 		   parentCategory.setName(parentCategoryId);
 		   parentCategory.setId(parentCategoryId);
 		   inArchive.getCategoryArchive().addChild(parentCategory);
@@ -167,7 +158,7 @@ public class SqlImportConverter extends CatalogConverter
 
 			   if (cat == null)
 			   {
-				   cat = new Category();
+				   cat = new BaseCategory();
 				   cat.setName(categoryString);
 				   cat.setId(categoryId);
 				   parentCategory.addChild(cat);
@@ -196,7 +187,7 @@ public class SqlImportConverter extends CatalogConverter
 
 			   if (subcat == null)
 			   {
-				   subcat = new Category();
+				   subcat = new BaseCategory();
 				   subcat.setName(subCategoryString);
 				   subcat.setId(subCategoryId);
 				   cat.addChild(subcat);
@@ -258,7 +249,7 @@ public class SqlImportConverter extends CatalogConverter
 			   }
 			   else
 			   {
-				   newasset = new Asset();
+				   newasset = new Asset(inArchive);
 				   newasset.setId(id);
 				   newasset.setName(name);
 			   }

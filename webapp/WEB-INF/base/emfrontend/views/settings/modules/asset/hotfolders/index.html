@@ -1,16 +1,26 @@
 <ul id="folders" class="fwlist">
 	
-	#foreach($folder in $folders )
+	#foreach($source in $sources )
+		#set( $folder = $source.getConfig() )
 	<li class="auto">
 		<a href="$home$apphome/views/settings/modules/asset/hotfolders/folder-setup.html?id=$folder.id" class="folder">
 			<div class="name">
 				<div class="alias" title="Alias">$folder.name</div>
-				#if( $folder.externalpath )
-				<div class="path" title="$folder.subfolder">$folder.subfolder</div>
+				#if( $folder.subfolder )
+				<div class="path" title="$folder.subfolder">Path: $folder.subfolder</div> 
 				#end
+				#if( $folder.enabled )
+				<div class="path" >Enabled: $folder.enabled</div> 
+				#end
+				
 				<div class="last-activity">Fully Scanned: $!context.getDateTime($folder.lastscanstart)</div>
+				
 			</div>
 		</a>
+		#if($folder.hotfoldertype == "googledrive")
+				  <a class="btn" href="$apphome/views/settings/google/connect.html?state=hotfolder${source.id}">Connect Google Drive and Admin</a>
+
+				#end
 	</li>
 	#end
 	

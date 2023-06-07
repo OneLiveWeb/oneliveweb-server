@@ -1,38 +1,11 @@
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
-import org.openedit.data.Searcher;
-import org.openedit.data.SearcherManager;
-import org.openedit.entermedia.MediaArchive;
-import org.openedit.Data;
-import com.openedit.page.Page;
-import com.openedit.page.manage.PageManager;
-import com.openedit.users.User;
-import com.openedit.util.FileUtils;
-import com.openedit.util.PathProcessor;
-import com.openedit.hittracker.SearchQuery;
-import com.openedit.hittracker.HitTracker;
-import org.openedit.entermedia.Asset;
-import org.openedit.entermedia.scanner.AssetImporter;
-import com.openedit.util.XmlUtil;
-import org.openedit.repository.ContentItem;
-import com.openedit.entermedia.scripts.ScriptLogger;
-import java.security.MessageDigest;
-
-import com.openedit.WebPageRequest
-import com.openedit.entermedia.scripts.EnterMediaObject
-import com.openedit.entermedia.scripts.ScriptLogger;
-import com.openedit.page.Page
-import com.openedit.servlet.OpenEditEngine
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.MediaArchive
 import org.openedit.Data
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
-import org.openedit.entermedia.modules.OrderModule
-import org.openedit.entermedia.orders.Order
-
+import org.openedit.data.Searcher
+import org.openedit.data.SearcherManager
+import org.openedit.hittracker.HitTracker
+import org.openedit.hittracker.SearchQuery
 import org.openedit.util.DateStorageUtil
-
 
 public void init()
 {
@@ -100,7 +73,7 @@ public void init()
 		String conversiontaskid = null;
 		if( "original".equals( preset.get("type") ) )
 		{
-			needstobecreated = !archive.getOriginalDocument(asset).exists();
+			needstobecreated = !archive.getOriginalContent(asset).exists();
 		}
 		else if( archive.doesAttachmentExist(outputfile, asset) )
 		{

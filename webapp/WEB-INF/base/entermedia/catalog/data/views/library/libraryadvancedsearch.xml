@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <root> 
-  <property id="description">Keyword</property>
   <property id="name" />
-  <property id="project" />
-  <property id="projectstatus" />
-  <property id="projecttype" />
+  <property id="division"/>
   
 </root>

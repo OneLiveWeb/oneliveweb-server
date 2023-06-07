@@ -1,10 +1,19 @@
-
+<div class="nopermissions">
 #if( $user.getId() )
-<h2>Permission Error</h2>
+<h2>[[No Permissions]]</h2>
 
-<p>You do not have permissions to perform the previous action.</p>
+
+#foreach($task in $somelist)
+
+<p>$task.id = This is a paragraph</p>
+
+
+#end
+
+<p>[[You do not have permissions to perform the previous action.]]</p>
 
 #else
 
 	$pages.include("$content.loginroot/login.html",$context)
 #end
+</div>

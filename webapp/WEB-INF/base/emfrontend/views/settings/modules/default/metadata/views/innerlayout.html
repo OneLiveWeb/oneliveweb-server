@@ -6,12 +6,11 @@
 
 #set ( $moduleid = $context.findValue("module") )		
 
-#set($query = $viewsearcher.createSearchQuery().append("module",$moduleid).append("systemdefined",$systemdefined) )
+#set($query = $viewsearcher.createSearchQuery().append("moduleid",$moduleid).append("systemdefined",$systemdefined) )
 $!query.addSortBy("ordering")
 #set($views = $viewsearcher.search($query))
 
 #set( $viewsroot = $content.viewsroot )
-
 
 	<div id="table-container">
 		<div id="side-nav-inner">
@@ -23,6 +22,8 @@ $!query.addSortBy("ordering")
 			$pages.includeContent()
 		</div>
 	</div>
+
+
 
 
 <script type="text/javascript">
@@ -40,9 +41,9 @@ $!query.addSortBy("ordering")
 		{
 			view = "asset/assettype/" + assettypeid + "/" + viewid;
 		}
-		document.location.href = "$home$viewsroot/index.html?viewid=" + viewid + "&viewpath=" + view + "&assettype=" +  assettypeid +"&searchtype=${searcher.getSearchType()}";
+		document.location.href = "$home$viewsroot/index.html?viewid=" + viewid + "&viewpath=" + view + "&assettype=" +  assettypeid +"&searchtype=${viewsearcher.getSearchType()}";
 	}
-/*
+/***
 	removeProperty = function() {
 		var selected = jQuery("select option:selected");
 		var selectedid = selected.val();

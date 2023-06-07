@@ -3,10 +3,10 @@
 #else
 <p>[[Here is the upgrade log]]:</p>
 
-#foreach( $id in $upgrader.list )
-<h2>$id</h2>
+#foreach( $plugin in $upgrader.list )
+<h2>$plugin</h2>
 <p>
-	#foreach( $row in $upgrader.upgrade($id,$context) )
+	#foreach( $row in $upgrader.upgrade($plugin,$context) )
 #esc($row) <br>
 	#end
 </p>
@@ -25,3 +25,8 @@
 #end
 
 #end
+
+[[restarting webapp]]...
+$upgrader.shutdown()
+
+<a class="mbtn learn-more" href="/manager/views/update/restartdocker.html" >Restart Docker</a>

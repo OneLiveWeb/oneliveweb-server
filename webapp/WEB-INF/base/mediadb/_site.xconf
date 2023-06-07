@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <page>
+  	<property name="fallbackdirectory">/WEB-INF/base/emfrontend2</property>
 
 	<generator  name="velocityGenerator" mimetypes="text/html"/>
 	<generator  name="velocityGenerator" mimetypes="text/json"/>
@@ -11,12 +12,21 @@
  	<property name="login-path">/${applicationid}/views/authentication/nopermissions.html</property>
 
 	<property name="editable">false</property>
-	<property name="showdebug">false</property>
+	<property name="showdebug">true</property>
 
+	<property name="themeprefix">/${applicationid}/theme</property>
 	<property name="applicationid">mediadb</property>
+	<property name="mediadbappid">${applicationid}</property>
+	<property name="title">MediaDB</property>
+	
+	<path-action name="MediaArchiveModule.loadApplicationId" />
+  	<path-action name="MediaArchiveModule.loadComponentHome" />
+	
 	<property name="catalogid">media/catalogs/public</property>
 	<path-action name="Admin.loadPermissions"/>
 	<path-action name="Admin.allowViewing" />
+	<path-action name="MediaArchiveModule.loadApplicationId" />
+	
 	<permission name="view">
 		<user />
 	</permission>	

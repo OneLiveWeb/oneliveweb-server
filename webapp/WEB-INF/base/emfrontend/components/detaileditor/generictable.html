@@ -1,5 +1,4 @@
 #set ($searchtype = $context.getRequestParameter("searchtype"))
-#set ($catalogid = $context.getRequestParameter("catalogid"))
 #set ($parentid = $context.getRequestParameter("parentid"))
 #set ($hitssessionid = $context.getRequestParameter("hitssessionid"))
 #set ($fieldexternalid = $context.getRequestParameter("fieldexternalid"))
@@ -53,7 +52,7 @@
 	#if( !$parser.parseBoolean($edit) && ($caneditdata || $caneditasset) && !$print.equals("true"))
 	
 	<div class="addnew-generic">
-	<a class="btn ajax" style="margin-left: 20px;" href="$home$editpath?$argsnoid&edit=true&oemaxlevel=1" targetdiv="${viewid}editor">Add New</a>
+	<a class="btn ajax" style="margin-left: 20px;" href="$home$editpath?$argsnoid&edit=true&oemaxlevel=1" targetdiv="${viewid}editor">[[Add New]]</a>
 	</div>
 	#end
 	
@@ -105,5 +104,5 @@
 	#end
 </div>
 #else ##showit
-	<p class="info">No data has been entered.</p>
+	<p class="info">[[No data has been entered]].</p>
 #end

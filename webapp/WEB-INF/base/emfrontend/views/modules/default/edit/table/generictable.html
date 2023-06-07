@@ -1,5 +1,4 @@
 #set ($searchtype = $context.getRequestParameter("searchtype"))
-#set ($catalogid = $context.getRequestParameter("catalogid"))
 #set ($parentid = $context.getRequestParameter("parentid"))
 #set ($hitssessionid = $context.getRequestParameter("hitssessionid"))
 #set ($fieldexternalid = $context.getRequestParameter("fieldexternalid"))
@@ -38,13 +37,15 @@
 #set( $argsnoid = "candelete=$candelete&jumptomodule=$!jumptomodule&editpath=$editpath&parentid=$parentid&catalogid=$catalogid&searchtype=$searchtype&fieldexternalid=$fieldexternalid&fieldexternalvalue=$fieldexternalvalue&viewid=$viewid&viewpath=$viewpath&permissionname=$!permissionname&hitssessionid=$!hitssessionid&selectlink=$!link")
 
 #set($viewdetailspath = $context.getRequestParameter("viewdetailspath"))
+
+
 #set ($passalong = "viewdetailspath=$!viewdetailspath&jumptomodule=$!jumptomodule&candelete=$candelete&viewid=$viewid&viewpath=$viewpath&parentid=$parentid&hitssessionid=$!hitssessionid&selectlink=$!link&fieldexternalid=$fieldexternalid&fieldexternalvalue=$fieldexternalvalue&$fieldexternalid=$!fieldexternalvalue")
 #set( $passalong = $passalong.replace("=","%3D").replace("&","%26").replace(" ","%20"))
 
 #set( $showit = true )
 
 #if($errors)
-<p class="info">Your entry is invalid.  Please check your values and try again.</p>
+<p class="info">[[Your entry is invalid.  Please check your values and try again]].</p>
 #set($edit = "true")
 #end
 
@@ -55,7 +56,7 @@
 	#if( !$parser.parseBoolean($edit) && ($caneditdata || $caneditasset) && !$print.equals("true"))
 	
 	<div class="addnew-generic">
-	<a class="btn ajax" style="margin-left: 20px;" href="$home$editpath?candelete=false&$argsnoid&passalong=$passalong&edit=true&oemaxlevel=1" targetdiv="${viewid}editor">Add New</a>
+	<a class="btn btn-default ajax" style="margin-left: 20px;" href="$home$editpath?candelete=false&$argsnoid&passalong=$passalong&edit=true&oemaxlevel=1" targetdiv="${viewid}editor">[[Add New]]</a>
 	</div>
 	#end
 	
@@ -69,18 +70,25 @@
 		#set( $data = $searcher.searchById($id) )
 		$context.putPageValue("data", $data)
 		
+		
 		<div id="default-fields">
-		  $pages.include("/$applicationid/components/xml/detaileditor.html",$context)
-		</div>
+
 		#if( $viewdetailspath )
-		<div style="text-align:right;padding: 10px;">
-		  <a href="$home${viewdetailspath}?id=$id">[[see more details]]</a>
+		
+		#set($themodule = false )
+		#set($themodule = $searcherManager.getData($catalogid, "module", $searchtype ) )
+		<div style="padding: 10px;">
+				<a href="$home$viewdetailspath${id}.html"><div class="largeicon" title="[[see more details]]"><span class="glyphicon glyphicon-new-window"></span> [[View In $themodule]]	</div> </a>
 		</div>
 		#end
+		
+
+		  $pages.include("/$applicationid/components/xml/detaileditor.html",$context)
+		</div>
 		<div style="margin: 20px 20px 0 20px;">
-			<a class="btn ajax red right" data-confirm="[[Are you sure?]]" style="color: #fff;" targetdiv='${viewid}editor' href="$home${page.directory}/table-deleterow.html?delete=true&$args&edit=false&oemaxlevel=1&id=$id">[[Delete]]</a>
-			<input class="btn "  type="submit" value="Save Values"/>
-			<a class="btn ajax" style="margin-left: 5px;" targetdiv='${viewid}editor' href="$home$editpath?$args&edit=false&oemaxlevel=1">[[Cancel]]</a>
+			<a class="btn btn-default ajax red right" data-confirm="[[Are you sure?]]" style="color: #fff;" targetdiv='${viewid}editor' href="$home${page.directory}/table-deleterow.html?delete=true&$args&edit=false&oemaxlevel=1&id=$id">[[Delete]]</a>
+			<input class="btn btn-default "  type="submit" value="[[Save Values]]"/>
+			<a class="btn ajax btn-default" style="margin-left: 5px;" targetdiv='${viewid}editor' href="$home$editpath?$args&edit=false&oemaxlevel=1">[[Cancel]]</a>
 		</div>
 
 		<input name="field" type="hidden" value="$fieldexternalid" />
@@ -109,5 +117,5 @@
 	#end
 </div>
 #else ##showit
-	<p class="info">No data has been entered.</p>
+	<p class="info">[[No data has been entered]].</p>
 #end

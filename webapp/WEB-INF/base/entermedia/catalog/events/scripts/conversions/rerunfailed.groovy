@@ -1,11 +1,8 @@
-import com.openedit.page.Page
+import org.entermediadb.asset.MediaArchive
+import org.openedit.Data
 import org.openedit.data.Searcher
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
-import org.openedit.*;
-
-import com.openedit.WebPageRequest;
-import com.openedit.hittracker.*;
+import org.openedit.hittracker.HitTracker
+import org.openedit.hittracker.SearchQuery
 
 public void init()
 {
@@ -18,6 +15,7 @@ public void init()
 		query.addMatches("status", "error");
 		
 		HitTracker tasks = tasksearcher.search(query);
+		tasks.enableBulkOperations();
 		List all = new ArrayList(tasks);
 		for (Data hit in all)
 		{

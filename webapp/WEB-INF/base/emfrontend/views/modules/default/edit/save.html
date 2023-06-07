@@ -1,2 +1,11 @@
-$pages.include("./edit.html")
 <p class="save fader" style="margin: 10px 20px;">Saved Ok!</p>
+
+#if(!$data.id.contains("multi"))
+
+
+$pages.include("./edit.html")
+
+
+#else
+$pages.include("../index.html")
+#end

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 
 <beans>
 
-<bean id="postMail" class="org.entermedia.email.PostMail">
+<bean id="postMail" class="org.entermediadb.email.PostMail">
 		<property name="smtpUsername">
 			<value>cburkey@openedit.org</value>
 		</property>
@@ -17,7 +16,7 @@
 			<value>smtp.elasticemail.com</value>
 		</property>
 		<property name="port">
-			<value>2525</value>
+			<value>25</value>
 		</property>
 		<property name="pageManager">
 			<ref bean="pageManager" />

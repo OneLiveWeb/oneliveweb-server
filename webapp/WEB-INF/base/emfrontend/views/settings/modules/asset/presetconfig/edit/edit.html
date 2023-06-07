@@ -1,10 +1,9 @@
 <div class="ui-widget" style="overflow: hidden;">
-<div class="ui-widget-header">Settings</div>
+<div class="ui-widget-header">[[Parameters]]</div>
 <div  class="ui-widget-content">
 
 <div id="editlayout">
 #set( $origURL = $context.getRequestParameter("origURL" ) )
-#set( $categoryid = $context.getRequestParameter("categoryid" ) )
 
 #if( !$view )				
 	#set( $view = "${searcher.searchType}/edit" )
@@ -21,11 +20,11 @@ $context.putPageValue("view", $view)
 $pages.include("/system/components/xml/detaileditor.html", $context)
 
 
-<a class="btn" href="#" onclick="jQuery(this).closest('form').submit();"><span>Save</span></a>
-<a class="btn"  href='$home$content.searchhome/index.html'><span>Cancel</span></a>
+<a class="btn" href="#" onclick="jQuery(this).closest('form').submit();"><span>[[Save]]</span></a>
+<a class="btn"  href='$home$content.searchhome/index.html'><span>[[Cancel]]</span></a>
 <a class="btn red" style="float: right" href='$home$content.searchhome/edit/delete.html?searchtype=$searcher.searchType&catalogid=$searcher.catalogId&id=$!data.id'>
 	<span>
-		Delete
+		[[Delete]]
 	</span></a>
 <br>
 <div id="messagearea">$!message
@@ -44,7 +43,7 @@ $pages.include("/system/components/xml/detaileditor.html", $context)
 </div>
 #if($data && $data.id)
 <h2>
-Preset Parameters
+[[Preset Parameters]]
 </h2>
 #set($viewsearcher = $searcherManager.getSearcher($catalogid, "view"))
 #set( $viewdata = $viewsearcher.searchById($viewid))
@@ -64,10 +63,7 @@ $context.putPageValue("canedittable", $caneditdata)
 
 #set( $args = "id=$id&parentid=$id&viewdetailspath=$!viewdetailspath&viewid=presetparameter/edit&viewpath=presetparameter/edit&catalogid=$mediaarchive.getCatalogId()&searchtype=$searchtype&fieldexternalid=$!fieldexternalid&fieldexternalvalue=$!fieldexternalvalue&listid=$!listid&listexternalid=$!listexternalid&permissionname=$permissionname&hitssessionid=$hitssessionid")
 
+##set( $args = "$args&editorpath=${content.searchhome}/edit/edit.html?id=$id")
+
 $pages.include("$apphome/components/detaileditor/generictable.html?$args", $context)
-
-
-
-
-
 #end

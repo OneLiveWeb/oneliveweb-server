@@ -4,12 +4,12 @@ import org.json.simple.JSONObject
 import org.openedit.Data
 import org.openedit.data.Searcher
 import org.openedit.data.SearcherManager
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.MediaArchive
 import org.openedit.entermedia.search.AssetSearcher
 
-import com.openedit.OpenEditException
-import com.openedit.WebPageRequest
+import org.openedit.OpenEditException
+import org.openedit.WebPageRequest
 
 public void handleAssetRequest(){
 

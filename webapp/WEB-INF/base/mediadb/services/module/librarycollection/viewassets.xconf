@@ -2,9 +2,10 @@
 	<generator name="velocity"/>
 	<path-action name="ProjectModule.searchForAssetsOnCollection" alltypes="true"/>
 	
+	<!-- OLD please remove -->
 	<permission name="view">
-    		<action name="ProjectModule.checkLibraryPermission" />
+    		<action name="ProjectModule.checkViewCollection" />
     </permission>
-	
+    
 	
 </page>

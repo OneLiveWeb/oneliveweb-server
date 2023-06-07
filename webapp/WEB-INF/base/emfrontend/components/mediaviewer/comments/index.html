@@ -31,7 +31,7 @@
 				#esc($comment.comment)
 			</div>
 			<div class="comment-bottom">
-				<span class="emcommentdate">Posted on $comment.getShortDate($context.locale)</span>
+				<span class="emcommentdate">[[Posted on]] $comment.getShortDate($context.locale)</span>
 			</div>
 		
 			#if($caneditasset)
@@ -54,7 +54,7 @@
 		</div>
 	#end
 	#if( $comments.size() > 15 )
-	<a class="emdialog" href="$home$apphome/components/mediaviewer/comments/index.html?sourcepath=$asset.sourcepath">View all $comments.size() comments</a>
+	<a class="emdialog" href="$home$apphome/components/mediaviewer/comments/index.html?sourcepath=$asset.sourcepath">[[View all]] $comments.size() [[comments]]</a>
 	#end
 </div>
 </div>

@@ -1,0 +1,20 @@
+<page>
+	
+	<path-action name="DataEditModule.loadData" allowduplicates="true" >
+			<pageval>selectedcategory</pageval>
+			<idname>id</idname>
+			<searchtype>category</searchtype>
+    </path-action>
+	
+	<property name="reloadprofile">true</property>
+	
+		<path-action name="DataEditModule.loadOrSearch">
+		<property name="searchtype">asset</property>
+	</path-action>	
+	
+	<property name="hitsname">hits</property>
+	
+	<path-action name="ProjectModule.redirectToCategory"/>
+
+			
+</page>

@@ -1,0 +1,13 @@
+<page>
+	<inner-layout>/${applicationid}/theme/layouts/mediaviewercategory.html</inner-layout>
+	<path-action name="MediaSearchModule.searchCategories"/>
+	
+	<property name="section">assets</property>
+	<property name="virtual">true</property>
+	<property name="searchcategory">true</property>
+	<property name="assetclearfilters">true</property>
+	<property name="assetclearselection">true</property>
+	
+	<property name="assetrootfolder">/${applicationid}/views/assets</property>
+
+</page>

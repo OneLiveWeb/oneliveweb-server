@@ -19,7 +19,9 @@
 	<bean id="orderhistorySearcher" bean="elasticDataSearcher" />
 	<bean id="orderitemSearcher" bean="elasticDataSearcher" />
 	<bean id="categoryArchive" bean="elasticCategoryArchive" />
-
+	<bean id="librarycollectionSearcher" bean="elasticLibraryCollectionSearcher" />
+	<bean id="modulesearchSearcher" bean="elasticModuleSearchSearcher" />
+	<bean id="modulesearchkeywordSearcher" bean="elasticModuleSearchKeywordSearcher" />
 
 
 	<!--  Little used -->
@@ -27,7 +29,10 @@
 	<bean id="emailSearcher" bean="elasticDataSearcher" />
 	<bean id="uploadqueueSearcher" bean="elasticDataSearcher" />
 	<bean id="assetAutoCompleteSearcher" bean="assetAutoCompleteElasticSearcher" />
+	<bean id="modulesearchAutoCompleteSearcher" bean="elasticAutoCompleteSearcher" />
 	<bean id="dynamicLogSearcher" bean="elasticLogSearcher" />
+
+	<bean id="nodeManager" bean="elasticNodeManager" />
 
 <!--  deprecated AssetRelatedKeywordSearcher -->
 

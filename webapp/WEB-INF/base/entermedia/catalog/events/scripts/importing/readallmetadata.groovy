@@ -1,22 +1,21 @@
-package importing;
+package importing
 
-import com.openedit.page.Page
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.MediaArchive
+import org.entermediadb.asset.scanner.MetaDataReader
+import org.openedit.Data
 import org.openedit.data.Searcher
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
-import org.openedit.*;
+import org.openedit.hittracker.HitTracker
+import org.openedit.repository.ContentItem
 
-import com.openedit.WebPageRequest;
-import com.openedit.hittracker.*;
-import org.openedit.entermedia.scanner.MetaDataReader;
+import groovy.util.logging.Log
 
 public void init()
 {
-		MediaArchive archive = context.getPageValue("mediaarchive");//Search for all files looking for videos
+		MediaArchive archive = context.getPageValue("mediaarchive");
 		Searcher searcher = archive.getAssetSearcher();
-		//HitTracker assets = searcher.getAllHits();
-		HitTracker assets = searcher.query().match("category","index").not("editstatus","7").sort("id").search();
-		assets.setHitsPerPage(1000);
+		HitTracker assets = searcher.query().all().not("editstatus","7").sort("id").search();
+		assets.enableBulkOperations();
 		String ids = context.getRequestParameter("assetids");
 		if( ids != null )
 		{
@@ -29,18 +28,19 @@ public void init()
 		MetaDataReader reader = moduleManager.getBean("metaDataReader");
 		for (Data hit in assets)
 		{
-			Asset asset = archive.getAssetBySourcePath(hit.get("sourcepath"));
+			log.info("metadatareader loading asset: ${hit.id}")
+			Asset asset = searcher.loadData(hit);
 
 			if( asset != null)
 			{
-				Page content = archive.getOriginalDocument( asset );
-				reader.populateAsset(archive, content.getContentItem(), asset);
+				ContentItem content = archive.getOriginalContent( asset );
+				reader.populateAsset(archive, content, asset);
 				assetsToSave.add(asset);
-				if(assetsToSave.size() == 1000)
+				if(assetsToSave.size() == 300)
 				{
 					archive.saveAssets( assetsToSave );
 					assetsToSave.clear();
-					log.info("saved 1000 metadata readings");
+					log.info("saved 300 metadata readings");
 				}
 			}
 		}

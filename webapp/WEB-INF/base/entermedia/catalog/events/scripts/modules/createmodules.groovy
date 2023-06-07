@@ -1,10 +1,8 @@
-package modules;
+package modules
 
-import org.entermedia.workspace.WorkspaceManager
-import org.openedit.entermedia.MediaArchive
-
-import com.openedit.hittracker.HitTracker
-
+import org.entermediadb.asset.MediaArchive
+import org.entermediadb.workspace.WorkspaceManager
+import org.openedit.hittracker.HitTracker
 
 public void init(){
 	MediaArchive archive = context.getPageValue("mediaarchive");
@@ -18,6 +16,10 @@ public void init(){
 	modules.each{
 		manager.saveModule(archive.getCatalogId(), appid, it);
 	}
+	//renindex  view endpoint
+	archive.getSearcher("view").reIndexAll();
+	//archive.getSearcher("endpoint").reIndexAll();
+	
 }
 
 

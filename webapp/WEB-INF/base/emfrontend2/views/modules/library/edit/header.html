@@ -1,0 +1,20 @@
+#set($viewid = $context.getRequestParameter("viewid"))
+#set($viewpath = $context.getRequestParameter("viewpath"))
+#set( $moduleid = $context.findValue("module") )
+#set($searchtype = $context.getRequestParameter("searchtype"))
+#if( !$searchtype)
+	#set( $searchtype = $moduleid)
+#end
+<div id="default-top" style="display:table-row" >
+    #set($module = $searcherManager.getData($catalogid, "module", $moduleid ) )
+
+    <div class="main-info">
+      	<div class="primary">$module / #if($data.name) $!data.name #elseif($data.id) $data.id #else  #end</div>
+  #if( $caneditdata && $data.id )
+    <a class="btn btn-xs btn-secondary emdialog" id="libpermissionstab" 
+    	href="$apphome/views/modules/library/datapermissions/index.html?id=$data.id" data-hidefooter="true" title="$data Permissions">
+    	<i class="fas fa-user-lock"></i>   [[Edit Permissions]]</a>
+  #end
+    </div>       
+              
+</div>

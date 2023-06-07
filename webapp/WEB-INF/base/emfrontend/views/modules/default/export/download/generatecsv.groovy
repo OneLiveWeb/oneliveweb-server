@@ -1,8 +1,8 @@
 import org.openedit.Data
 import org.openedit.data.*
-import org.openedit.entermedia.util.CSVWriter
+import org.entermediadb.asset.util.CSVWriter
 
-import com.openedit.hittracker.HitTracker
+import org.openedit.hittracker.HitTracker
 	
 
 HitTracker hits = (HitTracker) context.getPageValue("hits");	
@@ -10,6 +10,7 @@ if(hits == null){
  String sessionid = context.getRequestParameter("hitssessionid");
  hits = context.getSessionValue(sessionid);
 }
+hits.enableBulkOperations();
 searcherManager = context.getPageValue("searcherManager");
 searchtype = context.findValue("searchtype");
 catalogid = context.findValue("catalogid");
@@ -29,10 +30,11 @@ if(detaillist != null){
 	}
 } 
 else{
-	//log.info("here " + context.findValue("view"));
+	log.info("here " + context.findValue("view"));
+	
 	if(context.findValue("view")){
-		details = searcher.getDetailsForView(context.findValue("view"), context.getUser());
-	//	log.info("details" + details);
+		details = searcher.getDetailsForView(context.findValue("view"), context.getUserProfile());
+		log.info("view" + context.findValue("view") + context.getUserProfile());
 	} 
 	else{
 		
@@ -41,7 +43,7 @@ else{
 	}
 }
 
-if(details == null){
+if(details == null || !friendly){
 	details = searcher.getPropertyDetails();
 }
 
@@ -52,11 +54,17 @@ headers = new String[details.size()];
 for (Iterator iterator = details.iterator(); iterator.hasNext();)
 {
 	PropertyDetail detail = (PropertyDetail) iterator.next();
-	headers[count] = detail.getText();		
-	count++;
+
+	if(friendly){
+		headers[count] = detail.getText(context);
+		} else{
+		headers[count] = detail.getId();
+		
+		}
+		count++;
 }
 writer.writeNext(headers);
-	log.info("about to start: " + hits);
+	log.info("about to start: " + hits.size() + details);
 Iterator i = null;
 if(hits.getSelectedHits().size() == 0){
 	i = hits.iterator();

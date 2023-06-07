@@ -1,8 +1,12 @@
-{"rows": [
+{
+#set( $nameprop = $searcher.getDetail("name") )
+  "total_count": $autocomplete.size(),
+  "incomplete_results": false,
+  "rows": [
 	#foreach ($res in $autocomplete.getPageOfHits())
-	#if( $velocityCount > 1 ),#end
-	#set($label = $searcherManager.getLabel($searcher,$res))
-	{"id": "$res.get('id')", "name": "$label", "sourcepath" : "$res.sourcepath"}
+	#if( ${foreach.count} > 1 ),#end
+	#set($label = $searcherManager.getLabel($nameprop,$res,$context.locale))
+	{"id": "$res.get('id')", "name": #jesc($label), "sourcepath" : "$res.sourcepath"}
 	#end
 	]
 }

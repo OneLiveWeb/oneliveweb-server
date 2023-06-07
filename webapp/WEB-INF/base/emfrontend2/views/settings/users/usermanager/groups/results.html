@@ -1,0 +1,13 @@
+#if(!$groupid)
+	#set($groupid = $context.getRequestParameter("groupid"))
+#end
+<ul class="emsettingslist">
+	<li class="header no-sort" id="views-header" >
+	    <span id="name">[[Groups]]</span>
+	</li>
+	#foreach ( $hit in $grouphits)
+	 <li #if( $groupid == $hit.id ) class="current" #end >
+	 	<a class="sortableitem" href="$home$apphome/views/settings/users/usermanager/groups/index.html?groupid=$hit.id">$hit</a>
+	 </li>
+	#end
+</ul>

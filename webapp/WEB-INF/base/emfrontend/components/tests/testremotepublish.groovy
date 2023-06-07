@@ -1,15 +1,15 @@
 import org.openedit.Data
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.modules.OrderModule
-import org.openedit.entermedia.orders.Order
-import org.openedit.entermedia.push.PushManager
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.modules.OrderModule
+import org.entermediadb.asset.orders.Order
+import org.entermediadb.asset.push.PushManager
 import org.openedit.events.PathEventManager
 
-import com.openedit.Test
-import com.openedit.WebPageRequest
-import com.openedit.entermedia.scripts.EnterMediaObject
-import com.openedit.entermedia.scripts.ScriptLogger
-import com.openedit.page.Page
+import org.openedit.Test
+import org.openedit.WebPageRequest
+import org.entermediadb.asset.scripts.EnterMediaObject
+import org.entermediadb.asset.scripts.ScriptLogger
+import org.openedit.page.Page
 
 
 class Test extends EnterMediaObject

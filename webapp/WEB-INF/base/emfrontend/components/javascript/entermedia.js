@@ -1,15 +1,10 @@
 var ajaxtimerrunning = false;
 var app,home,apphome,themeprefix;
-
-
-openFancybox = function(href) {
-	  jQuery.fancybox({
-	     'href' : href,
-	     'type': 'iframe'
-	  });
-}
-
-
+var collectionId = '';
+var categoryDragged;
+var newCollection;
+var isCategoryDragged = false;
+var isCollectionCreatedByDragging = false;
 
 
 repaint = function(divid) {
@@ -44,7 +39,7 @@ saveProfileProperty = function(property, value,onsuccess) {
 	
 	jQuery.ajax(
 			{
-				url:  apphome + "/components/userprofile/saveprofileproperty.html?field=" + property + "&" + property + ".value=" + value,
+				url:  apphome + "/components/userprofile/saveprofileproperty.html?propertyfield=" + property + "&" + property + ".propertyvalue=" + value,
 				success: onsuccess
 			}
 		);
@@ -154,16 +149,30 @@ toggleajax = function(e)
 	{
 		jQuery.get(nextpage, {}, function(data) 
 			{
-				cell.html(data);
 				cell.addClass("toggle_on");
 				cell.show('fast');
 			}
 		);
 	}
 }
+
+findclosest = function(link,inid)
+{
+	var result = link.closest(inid);
+	if( result.length == 0 )
+	{
+		result = link.children(inid);
+		if( result.length == 0 )
+		{
+			result = jQuery(inid);
+		}
+	}
+	return result.first();
+}
 runajaxonthis = function(inlink,e)
 {
 	
+	jQuery(".ajaxprogress").show();
 	var inText = jQuery(inlink).data("confirm");
 	if(e && inText && !confirm(inText) )
 	{
@@ -171,6 +180,7 @@ runajaxonthis = function(inlink,e)
 		e.preventDefault();
 		return false;
 	}
+	inlink.attr('disabled','disabled');
 	
 	if( inlink.hasClass("activelistener") )
 	{
@@ -178,16 +188,23 @@ runajaxonthis = function(inlink,e)
 		inlink.addClass("active");
 	}
 	var nextpage= inlink.attr('href');
-	var targetDiv = inlink.attr("targetdiv");
-	
+	var targetDiv = inlink.data("targetdiv");
+	if( !targetDiv )
+	{
+		targetDiv = inlink.attr("targetdiv");
+	}
 	var useparent = inlink.data("useparent");
+
+	var options = inlink.data();
 	
 	if( targetDiv)
 	{
 		targetDiv = targetDiv.replace(/\//g, "\\/");
 		
-		jQuery.get(nextpage, {}, function(data) 
+		jQuery.get(nextpage, options, function(data) 
 			{
+				//console.log("Called REAL get on " ,arguments );
+				
 				var cell;
 				if(useparent && useparent == "true")
 				{
@@ -195,24 +212,33 @@ runajaxonthis = function(inlink,e)
 				}
 				else
 				{
-					cell = jQuery("#" + targetDiv);
+					cell = findclosest(inlink,"#" + targetDiv); 
+					
 				}
 				
 				//Call replacer to pull $scope variables
-				
-				cell.replaceWith(data);
-				
+				cell.replaceWith(data); //Cant get a valid dom element
 				$(window).trigger( "resize" );
-				
 			}
-		);
+		).always(function()
+		{
+			jQuery(".ajaxprogress").hide();
+
+			//inlink.css("enabled",true);
+			inlink.removeAttr('disabled');
+		});
 	}	
 	else
 	{
-		var loaddiv = inlink.attr("targetdivinner");
+		//add oemaxlevel as data
+		var loaddiv = inlink.data("targetdivinner");
+		if( !loaddiv )
+		{
+			loaddiv = inlink.attr("targetdivinner");
+		}
 		loaddiv = loaddiv.replace(/\//g, "\\/");
 		//jQuery("#"+loaddiv).load(nextpage);
-		jQuery.get(nextpage, {}, function(data) 
+		jQuery.get(nextpage, options, function(data) 
 				{
 					var cell;
 					
@@ -222,21 +248,25 @@ runajaxonthis = function(inlink,e)
 					}
 					else
 					{
-						cell = jQuery("#" + loaddiv);
+						cell = findclosest(inlink,"#" + loaddiv);
 					}
 					cell.html(data);
 					$(window).trigger( "resize" );
-				}
+				}).always(function()
+						{
+					jQuery(".ajaxprogress").hide();
 
-			);
+							//inlink.css("enabled",true);
+							inlink.removeAttr('disabled');
+						});		
 	}
 }
 runajax = function(e)
 {
-	runajaxonthis($(this),e);
 	 e.stopPropagation();
      e.preventDefault();
-	//return false;
+	runajaxonthis($(this),e);
+	return false;
 }
 
 showHoverMenu = function(inDivId)
@@ -255,12 +285,14 @@ updatebasket = function(e)
 		var targetDiv = jQuery(this).attr("targetdiv");
 		targetDiv = targetDiv.replace(/\//g, "\\/");
 		var action= jQuery(this).data('action');
-		jQuery("#"+targetDiv).load(nextpage, {}, function()
+		jQuery("#"+targetDiv).load(nextpage, function()
 			{
 			    jQuery("#basket-paint").load(apphome + "/components/basket/menuitem.html");
 				if(action == 'remove'){
 					jQuery(".selectionbox:checked").closest("tr").hide("slow");
 					jQuery(".selectionbox:checked").closest(".emthumbbox").hide("slow");
+					jQuery(".selectionbox:checked").closest(".stackedplayer-cell").hide("slow");
+
 				}
 			}
 		);
@@ -311,140 +343,12 @@ onloadselectors = function()
 {
 	
 	jQuery("a.ajax").livequery('click', runajax);
+	
 	jQuery("a.toggleajax").livequery('click', toggleajax);
 	
 	jQuery("a.updatebasket").livequery('click', updatebasket);
 //	jQuery("a.updatebasketonasset").livequery('click', updatebasketonasset);
 	
-	//Sorting for views and lists
-	
-	jQuery("form.ajaxform").livequery('submit',	
-		function() 
-		{
-			var form = jQuery(this);
-			form.validate({
-			  ignore: ".ignore"
-			});
-			
-			
-    		var isvalidate = form.valid();
-			if(!isvalidate)
-        	{
-            	e.preventDefault();
-            	//show message
-            	return;
-        	}
-			var targetdiv = form.attr("targetdiv");
-			targetdiv = targetdiv.replace(/\//g, "\\/");
-			// allows for posting to a div in the parent from a fancybox.
-			if(targetdiv.indexOf("parent.") == 0)
-			{
-				targetdiv = targetdiv.substr(7);
-				parent.jQuery(this).ajaxSubmit({target: "#" + targetdiv});
-				// closes the fancybox after submitting
-				parent.jQuery.fancybox.close();
-			}
-			else
-			{
-				jQuery(this).ajaxSubmit( {target:"#" + targetdiv} );
-			}
-			var reset =form.data("reset") 
-			if( reset == true){
-				form.get(0).reset();
-			}
-			return false;
-		}
-	);
-	jQuery("form.ajaxform input.cancel").livequery('click',function()
-	{
-		parent.jQuery.fancybox.close();
-	});
-	
-	jQuery("form.ajaxautosubmit").livequery( function() 
-			{
-				var theform = jQuery(this); 
-				theform.find("select").change( function()
-						{
-							theform.submit();
-						});
-			});
-		jQuery("a.emdialog").livequery(
-			function() 
-			{
-				var dialog = jQuery(this);
-				var height = dialog.data("height");
-				if( !height )
-				{
-					height = "500";
-				}
-	
-				var width = dialog.data("width");
-				if( !width )
-				{
-					width = "650";
-				}
-				
-				dialog.fancybox(
-				{ 
-					'zoomSpeedIn': 0, 'zoomSpeedOut': 0, 'overlayShow': true,
-					enableEscapeButton: true, 
-					type: 'iframe',
-			        height: height,
-			        width: width,
-					autoScale: false,
-			        autoHeight: false,
-			        fitToView: false,
-			        iframe: { preload   : false }
-				});
-			}
-		); 
-	jQuery("a.thickbox").livequery(
-			function() 
-			{
-				jQuery(this).fancybox(
-				{
-			    	openEffect	: 'elastic',
-			    	closeEffect	: 'elastic',
-			    	helpers : {
-			    		title : {
-			    			type : 'inside'
-			    		}
-			    	}
-				});
-			}
-		); 
-	jQuery("#fancy_content .fancyclose").livequery( function() {
-		$(this).parent.fancybox.close();
-	});
-	jQuery("a.slideshow").livequery(
-		function() 
-		{
-			jQuery(this).fancybox(
-			{ 
-				'zoomSpeedIn': 300, 'zoomSpeedOut': 300, 'overlayShow': true , 'slideshowtime': 6000
-			});
-		}
-	);
-
-	jQuery("img.framerotator").livequery(
-		function()
-		{
-			jQuery(this).hover(
-				function() {
-					jQuery(this).data("frame", 0);
-					var path = this.sr$('select#speedC').selectmenu({style:'dropdown'});c.split("?")[0];
-					var intval = setInterval("nextFrame('" +  this.id + "', '" + path + "')", 1000);
-					jQuery(this).data("intval", intval);
-				},
-				function() {
-					var path = this.src.split("?")[0];
-					this.src = path + '?frame=0';
-					var intval = jQuery(this).data("intval");
-					clearInterval(intval);
-				}
-			); 
-		});
-
 	jQuery("a.propertyset").livequery('click', 
 			function(e)
 			{
@@ -468,23 +372,6 @@ onloadselectors = function()
 			});
 	
 	
-	jQuery(".suggestsearchinput").livequery( function() 
-			{
-				var theinput = jQuery(this);
-				if( theinput && theinput.autocomplete )
-				{
-					theinput.autocomplete({
-						source: apphome + '/components/autocomplete/assetsuggestions.txt',
-						select: function(event, ui) {
-							//set input that's just for display purposes
-							theinput.val(ui.item.value);
-							//theinput.submit();
-							return false;
-						}
-					});
-				}
-			});
-
 	//move this to the settings.js or someplace similar 
 	jQuery(".addmygroupusers").livequery( function() 
 			{
@@ -507,7 +394,8 @@ onloadselectors = function()
 							jQuery.get(targeturl + ui.item.value, 
 									function(result) {
 										jQuery("#" + targetdiv).html(result);
-							});
+									}
+							);
 							return false;
 						}
 					});
@@ -532,6 +420,27 @@ onloadselectors = function()
 				}
 			});
 
+	jQuery(".googlecontactlist").livequery( function() 
+			{
+				var theinput = jQuery(this);
+				if( theinput  )
+				{
+					var theinputhidden = theinput.attr("id") + "hidden";
+					theinput.autocomplete({
+						source: apphome + '/views/settings/google/contactsearch.txt',
+						select: function(event, ui) {
+							//set input that's just for display purposes
+							theinput.val(ui.item.display);
+							//set a hidden input that's actually used when the form is submitted
+							jQuery("#" + theinputhidden).val(ui.item.value);
+							return false;
+						}
+					});
+				}
+			});
+
+	
+	
 	
 	
 	
@@ -567,9 +476,10 @@ onloadselectors = function()
 		});
 		
 	jQuery("div.emtable.striped div.row:nth-child(even)").livequery( function()
-		{
-			jQuery(this).addClass("odd");
-		});
+			{
+				jQuery(this).addClass("odd");
+			});
+	
 	jQuery("#tree div:even").livequery( function(){
 		jQuery(this).addClass("odd");
 	});
@@ -587,8 +497,8 @@ onloadselectors = function()
 				button.show();	
 			}
 		});
-		ta.prettyComments();
-		// ta.focus();
+		//ta.prettyComments();
+		 ta.focus();
 	});
 	
 
@@ -703,91 +613,6 @@ onloadselectors = function()
 		jQuery("#assetsearchinput").removeClass("defaulttext");
 	}
 	
-	jQuery('#mattresulttable table tr').livequery('click',
-			function(event) {
-				//find the rowid go there
-				var id = jQuery(this).attr("rowid");
-				window.location = id;
-			}
-	);
-
-		jQuery('#emselectable table td' ).livequery(	
-			function()
-			{
-				var clicked = jQuery(this);
-				
-				if(clicked.attr("noclick") =="true") {
-					return true;
-				}
-				
-				var emselectable = clicked.closest("#emselectable");
-				var row = $(clicked.closest("tr"));
-				
-				clicked.click(
-					function(event) 
-					{
-						if ( row.hasClass("thickbox") ) 
-						{
-							var href = row.data("href");
-							openFancybox(href);
-						} else {
-							emselectable.find('table tr' ).each(function(index) 
-							{ 
-								clicked.removeClass("emhighlight");
-							});
-							row.addClass('emhighlight');
-							row.removeClass("emborderhover");
-							
-							var id = row.attr("rowid");
-							var url = row.closest("table").data("clickpath");
-							var form = emselectable.find("form");
-							if( form.length > 0 )
-							{
-								emselectable.find( '#emselectedrow' ).val(id);
-								emselectable.find( '.emneedselection').each( function()
-								{
-									clicked.removeAttr('disabled');
-								});	
-								form.submit();
-							}
-							else if( url != undefined )
-							{
-								window.location = url + id;
-							}
-							else
-							{
-								window.location = id;
-							}
-						}
-					}
-				);		
-			}
-		);
-
-	jQuery('#emselectable table tr' ).livequery(
-	function()
-	{
-		jQuery(this).hover(
-			function () 
-			{
-			  	var row = jQuery(this).closest("tr");
-				var id = jQuery(row).attr("rowid");
-			    if( id != null )
-			    {
-				    jQuery(this).addClass("emborderhover");
-				}
-		 	}, 
-			function () {
-			    jQuery(this).removeClass("emborderhover");
-			}
-		);
-	});
-		
-	
-//	jQuery(".toggleitem").livequery('click', toggleitem);
-	
-//	jQuery(".toggleorderitem").livequery('click', toggleorderitem);
-
 	jQuery(".headerdraggable").livequery( 
 			function()
 			{	
@@ -810,7 +635,9 @@ onloadselectors = function()
 				);
 			}
 		);
-	jQuery(".assetdraggable").livequery( 
+	if( jQuery.fn.draggable )
+	{
+		jQuery(".assetdraggable").livequery( 
 			function()
 			{	
 				jQuery(this).draggable( 
@@ -842,19 +669,63 @@ onloadselectors = function()
 				*/
 			}
 		);
-	
+		jQuery(".categorydraggable").livequery( 
+			function()
+			{	
+				jQuery(this).draggable( 
+					{
+						delay: 300,
+						helper: function()
+						{
+							var cloned = $(this).clone();
+							
+							
+							$(cloned).css({"border":"1px solid blue",
+										   "background":"#c9e8f2"});
+
+							//var status = jQuery('input[name=pagetoggle]').is(':checked');
+							 var n = $("input.selectionbox:checked").length;
+							 if( n > 1 )
+							 {
+									cloned.append('<div class="dragcount">+' + n + '</div>');
+								 
+							 }
+							
+							return cloned;
+						}
+						,
+						revert: 'invalid'
+					}
+				);
+				/*
+				jQuery(this).bind("drag", function(event, ui) {
+				    ui.helper.css("background-color", "red");
+				    ui.helper.css("border", "2px solid red");
+				    ui.helper.append("3");
+				});
+				*/
+			}
+		);
+	}
 	jQuery(".headerdroppable").livequery(
 			function()
 			{
+			
+				if( !jQuery(this).droppable )
+				{
+					return;
+				}
+			
 				jQuery(this).droppable(
 					{
 						drop: function(event, ui) {
 							var source = ui.draggable.attr("id");
+							var node = $(this);
 							var destination = this.id;
 							
-							//searchtype=asset&hitssessionid=$hits.getSessionId()&editheader=true
-							
-							var sessionid = ui.draggable.attr("hitssessionid");
+							var rdiv = $("#resultsdiv");
+							var searchtype = rdiv.data("searchtype");
+							var sessionid = rdiv.data("hitssessionid");
 							
 							var editing = ui.draggable.attr("editing")
 							if( !editing )
@@ -866,7 +737,7 @@ onloadselectors = function()
 								"source":source,
 								"destination":destination,
 								editheader:editing,
-								searchtype:"asset",
+								searchtype:searchtype,
 								"hitssessionid":sessionid
 								});
 							//ui.helper.effect("transfer", { to: jQuery(this).children("a") }, 200);
@@ -878,39 +749,69 @@ onloadselectors = function()
 				);
 			}
 		);
-	jQuery(".assetdropcategory .categorydroparea").livequery(
+
+	if( jQuery.fn.droppable )
+	{
+    	jQuery(".assetdropcategory .categorydroparea").livequery(
 			function()
 			{
 				jQuery(this).droppable(
 					{
 						drop: function(event, ui) {
-							var assetid = ui.draggable.data("assetid");
 							var node = $(this);
 							var categoryid = node.parent().data("nodeid");
+							var targetcategoryid = ui.draggable.data("nodeid")
 							
-							var hitssessionid = $("#resultsdiv").data("hitssessionid");
-							if( !hitssessionid )
+							if( targetcategoryid )
 							{
-								hitssessionid = $("#main-results-table").data("hitssessionid");
+								var tree = node.closest(".emtree");
+								var params = tree.data();
+								params['categoryid'] = targetcategoryid;//Remove from self
+								params['categoryid2'] = categoryid;
+								params['oemaxlevel'] = "1";
+								params['tree-name'] = tree.data("treename"); 
+								
+								jQuery.get(apphome + "/components/emtree/movecategory.html", 
+										params,
+										function(data) 
+										{
+											tree.closest("#treeholder").replaceWith(data);
+										}
+								);
 							}
-//							var tree = this.nearest(".categorytree");
-//							var treeid = tree.data("")
-							//toggleNode('users','categoryPickerTree_media/catalogs/public_admin','users')
-							//this is a category
-							jQuery.get(apphome + "/components/categorize/addassetcategory.html", 
-									{
-										assetid:assetid,
-										categoryid:categoryid,
-										hitssessionid:hitssessionid
-									},
-									function(data) 
-									{
-										node.append("<span class='fader'>&nbsp;+" + data + "</span>");
-										node.find(".fader").fadeOut(3000);
-										node.removeClass("selected");
-									}
-							);
-
+							else
+							{
+								var assetid = ui.draggable.data("assetid");
+								var hitssessionid = $("#resultsdiv").data("hitssessionid");
+								if( !hitssessionid )
+								{
+									hitssessionid = $("#main-results-table").data("hitssessionid");
+								}
+								
+								//this is a category
+								var moveit = false;
+								if( node.closest(".assetdropcategorymove").length > 0 )
+								{
+									moveit = true;
+								}
+								var rootcategory = node.closest(".emtree").data("rootnodeid");
+									
+								jQuery.get(apphome + "/components/categorize/addassetcategory.html", 
+										{
+											assetid:assetid,
+											categoryid:categoryid,
+											hitssessionid:hitssessionid,
+											moveasset: moveit,
+											rootcategoryid: rootcategory
+										},
+										function(data) 
+										{
+											node.append("<span class='fader'>&nbsp;+" + data + "</span>");
+											node.find(".fader").fadeOut(3000);
+											node.removeClass("selected");
+										}
+								);		
+							}
 						},
 						tolerance: 'pointer',
 						over: outlineSelectionCol,
@@ -919,7 +820,8 @@ onloadselectors = function()
 				);
 			}
 		);
-
+		} //droppable
+		
 		jQuery(".autosubmitdetails").livequery(
 			function()
 			{
@@ -942,35 +844,24 @@ onloadselectors = function()
 			}
 		);	
 		jQuery(".ajaxstatus").livequery(
-				function()
+			function()
+			{
+				var uid = $(this).attr("id");
+				var isrunning = $(this).data("ajaxrunning");
+				var timeout = $(this).data("reloadspeed");
+				if( timeout == undefined)
 				{
-	
-					var uid = $(this).attr("id");
-					
-					var running = runningstatus[uid];
-					if( !running)
-					{
-						runningstatus[uid] = true;
-						var timeout = $(this).data("period");
-						if( timeout == undefined)
-						{
-							$(this).data("period","3000");
-							timeout = $(this).data("firstrun");
-							if( timeout == undefined)
-							{
-								timeout = "3000";
-							}
-						}
-						timeout = parseInt(timeout);
-						//console.log("Started period " + uid + " " + timeout);
-						setTimeout('showajaxstatus("' + uid +'");',timeout);
-					}
+					timeout = 3000;
 				}
+				if( isrunning == undefined)
+				{
+					timeout = 500; //Make the first run a quick one
+				}
+				setTimeout('showajaxstatus("' + uid +'");',timeout); //First one is always faster			
+			}
 		);
 		
 } //End of selections
-
-var runningstatus = {};
 
 showajaxstatus = function(uid)
 {
@@ -979,34 +870,18 @@ showajaxstatus = function(uid)
 	if( cell )
 	{
 		var path = cell.attr("ajaxpath");
-		if( path == undefined)
+		if(!path || path =="")
 		{
-			return;
+			path = cell.data("ajaxpath");
 		}
-		var timeout = cell.data("period");
-		//console.log(uid + " update running with next period " + timeout);
-		jQuery.get(path, {}, function(data) {
-			cell.replaceWith(data);
-			cell = jQuery("#" + uid);
-			if( !cell.hasClass("ajaxstatus") )
+		//console.log("Loading " + path );
+		if( path && path.length > 1)
+		{
+			jQuery.get(path, {}, function(data) 
 			{
-				return;
-			}
-			if( timeout == undefined)
-			{
-				return;
-			}
-			cell.data("period",timeout);
-			timeout = parseInt(timeout);
-			if( cell.length > 0 )
-			{
-				setTimeout('showajaxstatus("' + uid +'",' + timeout + ');',timeout);
-			}
-			else
-			{
-				delete runningstatus[uid];
-			}
-		});
+				cell.replaceWith(data); //jQuery will reinit this class
+			});
+		}	
 	}
 }
 
@@ -1024,14 +899,18 @@ jQuery(document).ready(function()
 	themeprefix = app.data("home") + app.data("themeprefix");	
 
 	$(document).ajaxError(function(e, jqxhr, settings, exception) 
-			{
-				console.log(e,jqxhr,exception);
+	{
+			console.log(e,jqxhr,exception);
+			if (exception == 'abort') {
+				return;
+			}		
+				
 				var errordiv = jQuery("#errordiv")
 				if( errordiv.length > 0)
 				{
 					
 					function fade(elem){
-						$(elem).delay(1).fadeOut(5000, "linear");
+						$(elem).delay(6000).fadeOut(5000, "linear");
 					}
 					
 					$('#errordiv').stop(true, true).show().css('opacity', 1);
@@ -1064,63 +943,10 @@ jQuery(document).ready(function()
 }); 
 
 emcomponents = function() {
-	$("#savedquerylist a").click(function(e)
-			{
-				e.preventDefault();
-				var a = jQuery(this);
-				var link = a.attr("href");
-				
-				jQuery.get(link, {}, function(data) 
-						{
-							var toreplace = jQuery("#searcheditor");
-							toreplace.html(data);
-							
-							var tmp = jQuery("#savedquerylist #newterm");
-							tmp.remove();
-							var top = a.position().top;
-							top = top + a.height() + 40;
-							jQuery("#eml-green-dialog").css("top",top);
-							
-							jQuery("#arrow").show();
-							var padleft = a.position().left;
-							padleft = padleft + a.width() / 2;
-							padleft = padleft  - 42; //arrow width
-							jQuery("#arrow").css("left",padleft);
-						}
-				);
-				return false;
-			}
-	);
-	
-	$("#addterm").click(function(e)
-		{
-			e.preventDefault();
-			var a = jQuery(this);
-			var link = a.attr("href");
-			
-			jQuery.get(link, {}, function(data) 
-					{
-						var toreplace = jQuery("#searcheditor");
-						toreplace.html(data);
-						
-						jQuery("#savedquerylist span").append('<span id="newterm">new term</span>');
-						var a = jQuery("#savedquerylist #newterm");
-						var top = a.position().top;
-						top = top + a.height() + 40;
-						jQuery("#eml-green-dialog").css("top",top);
-						
-						jQuery("#arrow").show();
-						var padleft = a.position().left;
-						padleft = padleft + a.width() / 2;
-						padleft = padleft  - 42; //arrow width
-						jQuery("#arrow").css("left",padleft);
-					}
-			);
-			return false;
-		}
-	);
 
-	jQuery(".librarydroparea").livequery(
+	if( jQuery.fn.draggable )
+	{
+	   jQuery(".librarydroparea").livequery(
 			function()
 			{
 				jQuery(this).droppable(
@@ -1151,7 +977,7 @@ emcomponents = function() {
 									function(data) 
 									{
 										var	cell = jQuery("#" + targetDiv);
-										cell.replaceWith(data);									
+										cell.replaceWith(data);	
 									}
 							);
 
@@ -1163,7 +989,8 @@ emcomponents = function() {
 				);
 			}
 		);
-
+	} //droppable
+	
 	jQuery("img.assetdragdrop").livequery( function()
 	{
 		var img = $(this);
@@ -1194,8 +1021,9 @@ emcomponents = function() {
 	        return true;
 	    };
         
-        this.addEventListener('dragstart', handler, false ); 
-        this.parentNode.addEventListener('dragstart', handler, false ); //Deal with A tags?
+        //THIS IS NOT QUITE WORKING
+       // this.addEventListener('dragstart', handler, false ); 
+       // this.parentNode.addEventListener('dragstart', handler, false ); //Deal with A tags?
         
 	});
 
@@ -1205,18 +1033,53 @@ emcomponents = function() {
 				jQuery(this).droppable(
 				{
 					drop: function(event, ui) {
-						var assetid = ui.draggable.data("assetid");
+						
+						/*
+						 * Current droppable element 
+						 */
 						var anode = $(this);
+						var collectionid = anode.data("collectionid");
 						var targetDiv = anode.data("targetdiv");
 						var dropsave = anode.data("dropsaveurl");
 						var hitssessionid = $("#resultsdiv").data("hitssessionid");
+						var collectionName = anode.find("a.librarylabel").data("collectionname");
+						
+						var params = {collectionid:collectionid};
+						
+						//console.log("Drop" + ui.draggable);
+						/*
+						 * Current draggable element
+						 */
+						var assetid = ui.draggable.data("assetid");
+						var categoryid = ui.draggable.data("nodeid");
+						var categoryName = ui.draggable.data("categoryname");
+						params.categoryid = categoryid;
+						params.categoryName = categoryName;
+
+						var response;
+						/*
+						if(!categoryName){
+							response = true;//confirm("Move asset to "+collectionName+" collection?");
+						}else{
+							response = confirm("Copy "+categoryName+" category to "+collectionName+" collection?");
+						}
+						if(response == false){
+							return false;
+						}
+						*/
+						
 						if( !hitssessionid )
 						{
 							hitssessionid = $("#main-results-table").data("hitssessionid");
 						}
 						
-						var nextpage= dropsave + "&assetid=" + assetid + "&hitssessionid=" + hitssessionid;
-						jQuery.get(nextpage, {}, function(data) 
+						var nextpage= dropsave;
+						if( assetid )
+						{
+							 params.assetid= assetid;
+						}
+						params.hitssessionid=hitssessionid;
+						jQuery.get(nextpage, params, function(data) 
 						{
 							var	cell = jQuery("#" + targetDiv);
 							cell.replaceWith(data);
@@ -1229,7 +1092,6 @@ emcomponents = function() {
 			}
 		);
 
-	
 	jQuery(".sidetoggle").livequery("click",
 			function()
 			{
@@ -1244,11 +1106,41 @@ emcomponents = function() {
 			}
 	);
 	
-
-	
-	
-	
-	
-	
+	jQuery(".newcollectiondroparea").livequery(
+	function()
+	{
+		jQuery(this).droppable(
+		{
+			drop: function(event, ui) 
+			{
+				var categortyid = ui.draggable.data("nodeid");
+				var dropsaveurl;
+				var params = {};
+				if(typeof categortyid != "undefined" )
+				{ 
+					 var categoryName = ui.draggable.data("categoryname");
+					 dropsaveurl = apphome + "/components/opencollections/dropcategory.html";
+					 params.categoryid = categortyid;
+					 params.categoryname = categoryName;
+				}
+				else
+				{
+					var assetid = ui.draggable.data("assetid");
+					dropsaveurl = apphome + "/components/opencollections/addnewchild.html?assetid=" + assetid;
+					params.assetid = assetid;
+					var hitssessionid = $("#resultsdiv").data("hitssessionid");
+					params.hitssessionid = hitssessionid;
+					
+				}
+				jQuery.get(dropsaveurl, params, function(data) 
+				{
+					var cell = jQuery("#opencollectioncreatenewarea");
+					cell.html(data);
+				});
+			},
+			tolerance: 'pointer',
+			over: outlineSelectionCol,
+			out: unoutlineSelectionCol
+		});
+	});	
 }
-

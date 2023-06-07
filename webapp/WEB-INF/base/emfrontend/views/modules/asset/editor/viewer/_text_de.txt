@@ -1,8 +1,9 @@
-#
-#Wed Feb 04 07:55:35 EST 2015
-Editing\ across\ $asset.size()\ records=Bearbeitung über $asset.size() Aufzeichnungen
-Next=nächste
+#Fri Sep 21 13:32:18 EDT 2018
+Editing\ across\ $asset.size()\ records=Bearbeitung über Dateigröße () Aufzeichnungen
+records=Aufzeichnungen
+Next=Weiter
 Slideshow=Diashow
-Go\ Back=zurückgehen
-Previous=Voriger
+Editing\ across=Bearbeitung für
+Go\ Back=Zurück
+Previous=Bisheiges
 

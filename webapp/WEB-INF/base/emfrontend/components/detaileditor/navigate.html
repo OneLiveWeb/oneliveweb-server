@@ -4,8 +4,8 @@
     		#set($previous = $hits.previous($indexOf))
     		#set($next = $hits.next($indexOf))
 		#end
-		
-		<div id="eml-tab-subnav">
+	<div id="resultsdiv" data-hitssessionid="$hits.getSessionId()" data-searchtype="asset" data-category="$!category.getId()" data-pagenum="$hits.getPage()"  data-totalpages="$hits.getTotalPages()">
+		<div id="eml-tab-subnav" >
     		<ul style="text-align: center;" id="sub-nav" class="mediaview">
     			#if( $hits )
 	#set( $hitssessionid = $hits.getSessionId() )
@@ -21,23 +21,33 @@
     				        <ul style="width: 100px; text-align: left;">
     				        	#if($canprintpreview)
 								<li >
-									<a class="print emdialog" href="$home$apphome/views/modules/asset/editor/printpreview/index.html?sourcepath=#uuencode($asset.sourcepath)&hitssessionid=$!{hitssessionid}" title="Print Preview">[[Print]]</a>
+									#set($printurl = "$home$apphome/views/modules/asset/editor/printpreview/index.html?sourcepath=$asset.sourcepath&hitssessionid=$!{hitssessionid}")
+									<a class="print " target="_blank" data-hidefooter="true"  href="#urlescape($printurl)" title="[[Print Preview]]">[[Print]]</a>
 								</li>
 								#end
 								#if($candownload || $canconvert || $candownloadfpo)
 						#if( $asset.getId().startsWith("multiedit:") )
 							<li><a  href="$home$apphome/views/activity/downloadassets.html?hitssessionid=$!hits.getSessionId()" >[[Download]]</a></li>
 						#else
-    				            		<li><a class="thickbox" data-fancybox-type="ajax" href="$home$apphome/views/activity/downloadassets.html?assetid=$asset.id&oemaxlevel=1">[[Download]]</a></li>
+    				            		<li>
+
+#if($mediaarchive.isCatalogSettingTrue("preventupscaling")) 
+					<a href="$home$apphome/views/activity/customdownloadassets.html?assetid=$asset.id"  data-hidefooter="true" >[[Download]]</a>
+					
+					#else
+<a class="emdialog" data-hidefooter="true"  href="$home$apphome/views/activity/downloadassets.html?assetid=$asset.id">[[Download]]</a></li>
+					#end
+
+
 						#end
 					   
     				            #end
     				            #if($candeleteasset)
                                 <li>
                                     #if ( $asset.getId().startsWith("multiedit:") )
-                                        <a class="thickbox" data-fancybox-type="ajax" href="$home$apphome/views/modules/asset/editor/delete/index.html?assetid=$asset.id&hitssessionid=$!{hitssessionid}&oemaxlevel=1">[[Delete Assets]]</a>
+                                        <a class="emdialog"   href="$home$apphome/views/modules/asset/editor/delete/index.html?assetid=$asset.id&hitssessionid=$!{hitssessionid}">[[Delete Assets]]</a>
                                     #else
-                                        <a class="thickbox" data-fancybox-type="ajax" href="$home$apphome/views/modules/asset/editor/delete/index.html?assetid=$asset.id&hitssessionid=$!{hitssessionid}&oemaxlevel=1">[[Delete]]</a>
+                                        <a class="emdialog"  href="$home$apphome/views/modules/asset/editor/delete/index.html?assetid=$asset.id">[[Delete]]</a>
                                     #end
                                 </li>
                                 #end
@@ -45,8 +55,29 @@
     				    </li>
     				    #end
     					#if ( $canshareasset )
+    					 <li><a href="#">[[Share]]</a>
+    				        <ul style="width: 100px; text-align: left;">
+    						#if ($canpublish)
                         <li>
-                            <a class="toggleajax" targetdivinner="share-container" href="$home$apphome/components/shareasset/index.html?assetid=$asset.id&oemaxlevel=1" id="share-button">[[Share]]</a>
+                            <a  class="emdialog"  data-hidefooter="true"   href="$home$apphome/views/activity/publishassets.html?assetid=$asset.id" >[[Publish]]</a>
+                        </li>
+                        	#end
+                        	#if( $canemaillink )
+                        <li>
+                            <a  class="emdialog"  data-hidefooter="true"   href="$home$apphome/views/activity/emailassets.html?assetid=$asset.id" >[[Email]]</a>
+                        </li>
+                        	#end
+                        	#if( $canembedasset && !$multi)
+                        <li>
+                            <a  class="emdialog"  data-hidefooter="true"   href="$home$apphome/components/share/embed.html?assetid=$asset.id" >[[Embed]]</a>
+                        </li>
+                        	#end
+                        	#if ( $canaddtoproject )
+						<li id="add-to-collection">
+							<a class="btn ajax" targetdivinner="shareOptionsContainer" href="#">[[Add to Project]]</a>
+						</li>
+						#end
+                        </ul>
                         </li>
                         #end
 
@@ -64,7 +95,7 @@
     						</li>	
     					#end
     					<li style="float: right;">
-    					<a href="${home}$apphome/views/search/index.html?hitssessionid=${hitssessionid}">[[Results]]</a>
+    					<a href="${home}$apphome/views/search/index.html?hitssessionid=${hitssessionid}">$hits.size() [[Results]]</a>
     					</li> 
     					#if($previous)
     						 <li style="float: right;"><a href="${home}$apphome/views/modules/asset/editor/$thispage/index.html?assetid=${previous.id}&hitssessionid=${hitssessionid}&roothits=$roothits"><<</a></li>
@@ -72,8 +103,8 @@
     			#end
     						
     		</ul>
-    		
 		</div>
+	</div>	
 		<div id="share-container" style="display: none;">
     
         </div>

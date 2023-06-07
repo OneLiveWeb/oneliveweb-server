@@ -1,0 +1,13 @@
+<div id="emresultscontent">
+
+#set( $searcher = $mediaarchive.getSearcher("librarycollection") )
+$context.putPageValue("searcher",$searcher)
+#set($viewid = "librarycollectiondialogresultstable")
+$context.putPageValue("viewid", $viewid)
+#set ($details = $searcher.getDetailsForView($viewid, $userprofile))
+$context.putPageValue("details",$details)
+$context.putPageValue("module","librarycollection")
+$context.putPageValue("hits",$collhits)
+$pages.include("${apphome}/components/table/results.html", $context)
+
+</div>

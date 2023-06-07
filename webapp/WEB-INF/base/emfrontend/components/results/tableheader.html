@@ -1,6 +1,8 @@
 <tr id="tableheader">
 #if( $showtoolbar )
-	<th class="firstheader" id="th-checkbox"><input name="pagetoggle" type="checkbox" #if($hits.isPageSelected()) checked #end />
+	<th class="firstheader" id="th-checkbox">
+		
+		<div id="th-checkbox-right">
 	    <div class="anchor">
     	    <div class="select-dropdown-open down"></div>
     	    <ul class="select-dropdown" style="display: none;">
@@ -9,6 +11,10 @@
     	        <li><a class="ajax  deselectpage" targetdiv="resultheader" href="$home$apphome/components/results/togglepage.html?oemaxlevel=1&hitssessionid=$hits.getSessionId()&action=none">[[Deselect All]]</a></li>
     	    </ul>
     	</div>
+    	</div>
+    	<div id="th-checkbox-left">
+			<input name="pagetoggle" type="checkbox" #if($hits.isPageSelected()) checked #end />
+		</div>
 	</th>
 #end	
 
@@ -16,7 +22,7 @@
 #if( !$edit || $edit == "false")
 #set( $edit = false)
 #end
-	<th id="th-thumbnail"> Thumbnail</th>
+	<th id="th-thumbnail"> [[Thumbnail]]  </th>
 	#set( $sortby = $hits.getSearchQuery().getSortBy() )
 	#foreach( $detail in $details)
 	
@@ -28,11 +34,11 @@
 						<a class="baseemenableonhover ajax edit-table-header" targetdivinner="resultsdiv" href="$home$apphome/components/results/addremovecolumns.html?oemaxlevel=1&searchtype=asset&hitssessionid=$hits.getSessionId()&editheader=true&removecolumn=$detail.id"><img title="Remove" src="$home$themeprefix/images/navigation/deletesm.png" /></a>
 					#elseif ($sortby.startsWith($detail.getId()))
 		 				#if($sortby.endsWith("Up"))
-		 				#set($sorticon="top")
-		 				#elseif ($sortby.endsWith("Down") )
-		 				#set($sorticon="bottom")
+		 					#set($sorticon="top")
+		 				#else
+		 					#set($sorticon="bottom")
 		 				#end	
-		 				<span class="glyphicon glyphicon-triangle-$sorticon"></span>
+		 				&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-triangle-$sorticon"></span>
 					#end
 			</div>
 		 </th>
@@ -40,22 +46,3 @@
 	
 </tr>
 
-<script>
-//TODO: Move this to results.js
-	$('th.sortable').on({
-		click: function(){
-			var id = $(this).attr('sortby');
-			if ( $(this).hasClass('currentsort') ) {
-				if ( $(this).hasClass('up') ) {
-					jQuery('#resultsdiv').load( '$home$apphome/components/results/columnsort.html?oemaxlevel=1&searchtype=asset&hitssessionid=$hits.getSessionId()&sortby=' + id + 'Down');
-				} else {
-					jQuery('#resultsdiv').load( '$home$apphome/components/results/columnsort.html?oemaxlevel=1&searchtype=asset&hitssessionid=$hits.getSessionId()&sortby=' + id + 'Up');
-				}
-			} else {
-				$('th.sortable').removeClass('currentsort');
-				$(this).addClass('currentsort');
-				jQuery('#resultsdiv').load( '$home$apphome/components/results/columnsort.html?oemaxlevel=1&searchtype=asset&hitssessionid=$hits.getSessionId()&sortby=' + id + 'Down');
-			}
-		}
-	});
-</script>

@@ -1,0 +1,69 @@
+#if( $librarycol )
+<div id="filteredresults" class="collection-container">
+
+<div class="collection-header">
+
+	<div class="collection-header-back">
+		<a href="$home$apphome" title="[[Collections]]"><i class="fas fa-chevron-left"></i></a>
+	</div>
+	#set( $asset = $mediaarchive.query("asset").match("category",$librarycol.rootcategory).searchOne() )
+	#set( $link = $mediaarchive.asLinkToPreview($asset,"image110x62cropped.jpg"))
+	
+	<div class="card card-mini card-collections">
+	 <div class="card-collections-thumb" style='background-image: url("${link}")'></div>
+	</div>
+	
+	<div class="collection-header-name">
+	<h1>${librarycol}</h1>
+	</div>
+	
+	<div class="collection-header-actions">
+	<a href="#" class="dropdown-toggle dropdown-noarrow" data-toggle="dropdown" data-bs-toggle="dropdown" title="[[Collection Actions]]">
+	<i class="fas fa-caret-down"></i></a>
+		<div class="dropdown-menu">
+			#if($caneditdata)
+			  #set( $link = "$home$apphome/views/modules/librarycollection/users.html?collectionid=${librarycol.getId()}")
+			  <a class="dropdown-item emdialog"  id="sharetab"  href="$link" data-hidefooter="true" title="[[Collection Followers]]"><i class="dropdown-item-icon fas fa-user-friends"></i> [[Followers]]</a>
+			   #set( $link = "$home$apphome/views/modules/librarycollection/permissions.html?collectionid=${librarycol.getId()}")
+			  <a class="dropdown-item emdialog" id="permissionstab" href="$link" data-hidefooter="true" title="[[View Permissions]]"><i class="dropdown-item-icon fas fa-user-lock"></i> [[View Permissions]]</a>
+		   	#end
+			#set( $editlink = "$home$apphome/views/modules/librarycollection/edit/settings.html?collectionid=${librarycol.getId()}")
+		 	<a class="dropdown-item emdialog"  data-allwaysloadpage="true" data-hidefooter="true"   href="$editlink" title="[[Collection Properties]]"><i class="dropdown-item-icon fas fa-cogs"></i> [[Properties]]</a>
+		 	#if($cansharecollection && !$librarycol.isVisibility("3") )
+			 	#set( $editlink = "$home$apphome/views/modules/librarycollection/sharecollection.html?collectionid=${librarycol.getId()}")
+			 	<a class="dropdown-item emdialog" data-allwaysloadpage="true" data-hidefooter="true"   href="$editlink" title="[[Sharing Collection]]"><i class="dropdown-item-icon fas fa-share-alt"></i> [[Sharing]]</a>
+		 	#end
+		</div>
+	</div>
+	
+</div>
+
+
+
+<div>
+#if( $canviewcategorynav || ( $librarycol && $canviewcategorynavcollections ) )
+	#set( $leftbarstatus = $userprofile.get("leftbarstatus"))
+#else
+	#set( $leftbarstatus = false)
+#end
+#set( $filtersbarstatus = $userprofile.get("filtersbarstatus"))
+#set( $module = $content.module)
+
+<div class="cols-main #if ($module) cols-$module #end" id="searchlayout">
+	<div class="col-main col-left #if ($leftbarstatus!=false) leftopen #end" id="col-left">
+		$pages.include("$apphome/components/sidebars/standard-left.html", $context)
+	</div>
+	<div class="col-main col-content-main #if ($leftbarstatus!=false) leftopen #end #if ($filtersbarstatus!=false) filtersopen #end " id="maincontent">
+	    	$pages.includeContent()
+	</div>
+	<div class="col-main col-filters #if($filtersbarstatus!=false) filtersopen #end" id="col-filters">
+		$pages.include("$apphome/components/filters/sidebar.html", $context)
+	</div>
+</div>
+</div>
+
+
+</div>
+#else
+$pages.includeContent()
+#end

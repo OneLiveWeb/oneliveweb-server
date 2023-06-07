@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<page>
+
+  <path-action name="DataPermissionModule.removeCondition"  />
+
+  <path-action name="DataPermissionModule.loadPermissionForEdit" />
+  <path-action name="DataEditModule.loadData" >
+		<property name="searchtype">${module}</property>
+		<property name="idname">dataid</property>
+   </path-action>
+   <property name="idname">dataid</property>
+   
+   <inner-layout /> 
+</page>

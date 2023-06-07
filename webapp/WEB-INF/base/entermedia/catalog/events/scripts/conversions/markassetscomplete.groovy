@@ -1,9 +1,9 @@
+import org.entermediadb.asset.Asset
+import org.entermediadb.asset.MediaArchive
+import org.openedit.Data
 import org.openedit.data.Searcher
-import org.openedit.entermedia.Asset
-import org.openedit.entermedia.MediaArchive
-import org.openedit.entermedia.scanner.PresetCreator;
-import org.openedit.*;
-import com.openedit.hittracker.*;
+import org.openedit.hittracker.HitTracker
+import org.openedit.hittracker.SearchQuery
 
 public void init()
 {
@@ -13,7 +13,7 @@ public void init()
 		
 		SearchQuery q = assetsearcher.createSearchQuery().append("importstatus", "imported");
 		HitTracker assets =  assetsearcher.search(q);
-		assets.setHitsPerPage(1000);
+		assets.enableBulkOperations();
 		
 		//TODO: Only check importstatus of imported?
 		log.info("Processing ${assets.size()}" );
@@ -24,7 +24,7 @@ public void init()
 		for (Data hit in assets)
 		{
 			checked++;
-			Asset asset = mediaarchive.getAssetBySourcePath(hit.get("sourcepath"));
+			Asset asset = mediaarchive.getAssetSearcher().loadData(hit);
 			if( asset == null )
 			{
 				continue; //Bad index
