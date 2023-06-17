@@ -32,8 +32,8 @@ analysis:
   stemfilter:
    type: "snowball"
    language: "English"
- filter:
-  elision:
-   type: "elision"
-   articles: ["l", "m", "t", "qu", "n", "s", "j"]
+ #filter:
+ # elision:
+ #  type: "elision"
+ #  articles: ["l", "m", "t", "qu", "n", "s", "j"]
  

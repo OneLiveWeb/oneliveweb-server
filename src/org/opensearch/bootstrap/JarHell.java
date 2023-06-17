@@ -1,4 +1,12 @@
 /*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ */
+
+/*
  * Licensed to Elasticsearch under one or more contributor
  * license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright
@@ -17,10 +25,20 @@
  * under the License.
  */
 
+/*
+ * Modifications Copyright OpenSearch Contributors. See
+ * GitHub history for details.
+ */
+
 package org.opensearch.bootstrap;
 
+import org.opensearch.common.SuppressForbidden;
+import org.opensearch.common.io.PathUtils;
+
 import java.io.IOException;
+import java.lang.Runtime.Version;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.FileVisitResult;
@@ -29,21 +47,18 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-
-import org.elasticsearch.Version;
-import org.elasticsearch.common.SuppressForbidden;
-import org.elasticsearch.common.io.PathUtils;
-import org.elasticsearch.common.logging.ESLogger;
-import org.elasticsearch.common.logging.Loggers;
 
 /**
  * Simple check for duplicate class files across the classpath.
@@ -53,9 +68,11 @@ import org.elasticsearch.common.logging.Loggers;
  *   <li>Checks that class files are not duplicated across jars.</li>
  *   <li>Checks any {@code X-Compile-Target-JDK} value in the jar
  *       manifest is compatible with current JRE</li>
- *   <li>Checks any {@code X-Compile-Elasticsearch-Version} value in
+ *   <li>Checks any {@code X-Compile-OpenSearch-Version} value in
  *       the jar manifest is compatible with the current ES</li>
  * </ul>
+ *
+ * @opensearch.internal
  */
 public class JarHell {
 
@@ -66,33 +83,31 @@ public class JarHell {
     @SuppressForbidden(reason = "command line tool")
     public static void main(String args[]) throws Exception {
         System.out.println("checking for jar hell...");
-        checkJarHell();
+        checkJarHell(System.out::println);
         System.out.println("no jar hell found");
     }
 
     /**
      * Checks the current classpath for duplicate classes
+     * @param output A {@link String} {@link Consumer} to which debug output will be sent
      * @throws IllegalStateException if jar hell was found
      */
-    public static void checkJarHell() throws Exception {
+    public static void checkJarHell(Consumer<String> output) throws IOException, URISyntaxException {
         ClassLoader loader = JarHell.class.getClassLoader();
-        ESLogger logger = Loggers.getLogger(JarHell.class);
-        if (logger.isDebugEnabled()) {
-            logger.debug("java.class.path: {}", System.getProperty("java.class.path"));
-            logger.debug("sun.boot.class.path: {}", System.getProperty("sun.boot.class.path"));
-            if (loader instanceof URLClassLoader ) {
-                logger.debug("classloader urls: {}", Arrays.toString(((URLClassLoader)loader).getURLs()));
-             }
+        output.accept("java.class.path: " + System.getProperty("java.class.path"));
+        output.accept("sun.boot.class.path: " + System.getProperty("sun.boot.class.path"));
+        if (loader instanceof URLClassLoader) {
+            output.accept("classloader urls: " + Arrays.toString(((URLClassLoader) loader).getURLs()));
         }
-        checkJarHell(parseClassPath());
+        checkJarHell(parseClassPath(), output);
     }
-    
+
     /**
      * Parses the classpath into an array of URLs
      * @return array of URLs
      * @throws IllegalStateException if the classpath contains empty elements
      */
-    public static URL[] parseClassPath()  {
+    public static Set<URL> parseClassPath() {
         return parseClassPath(System.getProperty("java.class.path"));
     }
 
@@ -103,22 +118,26 @@ public class JarHell {
      * @throws IllegalStateException if the classpath contains empty elements
      */
     @SuppressForbidden(reason = "resolves against CWD because that is how classpaths work")
-    static URL[] parseClassPath(String classPath) {
+    static Set<URL> parseClassPath(String classPath) {
         String pathSeparator = System.getProperty("path.separator");
         String fileSeparator = System.getProperty("file.separator");
         String elements[] = classPath.split(pathSeparator);
-        URL urlElements[] = new URL[elements.length];
-        for (int i = 0; i < elements.length; i++) {
-            String element = elements[i];
+        Set<URL> urlElements = new LinkedHashSet<>(); // order is already lost, but some filesystems have it
+        for (String element : elements) {
             // Technically empty classpath element behaves like CWD.
             // So below is the "correct" code, however in practice with ES, this is usually just a misconfiguration,
             // from old shell scripts left behind or something:
-            //   if (element.isEmpty()) {
-            //      element = System.getProperty("user.dir");
-            //   }
+            // if (element.isEmpty()) {
+            // element = System.getProperty("user.dir");
+            // }
             // Instead we just throw an exception, and keep it clean.
             if (element.isEmpty()) {
-                throw new IllegalStateException("Classpath should not contain empty elements! (outdated shell script from a previous version?) classpath='" + classPath + "'");
+                throw new IllegalStateException(
+                    "Classpath should not contain empty elements! (outdated shell script from a previous"
+                        + " version?) classpath='"
+                        + classPath
+                        + "'"
+                );
             }
             // we should be able to just Paths.get() each element, but unfortunately this is not the
             // whole story on how classpath parsing works: if you want to know, start at sun.misc.Launcher,
@@ -135,48 +154,52 @@ public class JarHell {
             }
             // now just parse as ordinary file
             try {
-                urlElements[i] = PathUtils.get(element).toUri().toURL();
+                if (element.equals("/")) {
+                    // Eclipse adds this to the classpath when running unit tests...
+                    continue;
+                }
+                URL url = PathUtils.get(element).toUri().toURL();
+                // junit4.childvm.count
+                if (urlElements.add(url) == false && element.endsWith(".jar")) {
+                    throw new IllegalStateException(
+                        "jar hell!" + System.lineSeparator() + "duplicate jar [" + element + "] on classpath: " + classPath
+                    );
+                }
             } catch (MalformedURLException e) {
                 // should not happen, as we use the filesystem API
                 throw new RuntimeException(e);
             }
         }
-        return urlElements;
+        return Collections.unmodifiableSet(urlElements);
     }
 
     /**
      * Checks the set of URLs for duplicate classes
+     * @param urls A set of URLs from the classpath to be checked for conflicting jars
+     * @param output A {@link String} {@link Consumer} to which debug output will be sent
      * @throws IllegalStateException if jar hell was found
      */
     @SuppressForbidden(reason = "needs JarFile for speed, just reading entries")
-    public static void checkJarHell(URL urls[]) throws Exception {
-    	
-    	if( true ) 
-    	{
-    		return;
-    	}
-    	
-        ESLogger logger = Loggers.getLogger(JarHell.class);
+    public static void checkJarHell(Set<URL> urls, Consumer<String> output) throws URISyntaxException, IOException {
         // we don't try to be sneaky and use deprecated/internal/not portable stuff
         // like sun.boot.class.path, and with jigsaw we don't yet have a way to get
         // a "list" at all. So just exclude any elements underneath the java home
         String javaHome = System.getProperty("java.home");
-        logger.debug("java.home: {}", javaHome);
-        final Map<String,Path> clazzes = new HashMap<>(32768);
+        output.accept("java.home: " + javaHome);
+        final Map<String, Path> clazzes = new HashMap<>(32768);
         Set<Path> seenJars = new HashSet<>();
         for (final URL url : urls) {
             final Path path = PathUtils.get(url.toURI());
             // exclude system resources
             if (path.startsWith(javaHome)) {
-                logger.debug("excluding system resource: {}", path);
+                output.accept("excluding system resource: " + path);
                 continue;
             }
             if (path.toString().endsWith(".jar")) {
                 if (!seenJars.add(path)) {
-                    logger.debug("excluding duplicate classpath element: {}", path);
-                    continue; // we can't fail because of sheistiness with joda-time
+                    throw new IllegalStateException("jar hell!" + System.lineSeparator() + "duplicate jar on classpath: " + path);
                 }
-                logger.debug("examining jar: {}", path);
+                output.accept("examining jar: " + path);
                 try (JarFile file = new JarFile(path.toString())) {
                     Manifest manifest = file.getManifest();
                     if (manifest != null) {
@@ -194,52 +217,52 @@ public class JarHell {
                     }
                 }
             } else {
-                logger.debug("examining directory: {}", path);
+                output.accept("examining directory: " + path);
                 // case for tests: where we have class files in the classpath
                 final Path root = PathUtils.get(url.toURI());
                 final String sep = root.getFileSystem().getSeparator();
-                Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        String entry = root.relativize(file).toString();
-                        if (entry.endsWith(".class")) {
-                            // normalize with the os separator
-                            entry = entry.replace(sep, ".").substring(0,  entry.length() - 6);
-                            checkClass(clazzes, entry, path);
+
+                // don't try and walk class or resource directories that don't exist
+                // gradle will add these to the classpath even if they never get created
+                if (Files.exists(root)) {
+                    Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+                        @Override
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                            String entry = root.relativize(file).toString();
+                            if (entry.endsWith(".class")) {
+                                // normalize with the os separator, remove '.class'
+                                entry = entry.replace(sep, ".").substring(0, entry.length() - ".class".length());
+                                checkClass(clazzes, entry, path);
+                            }
+                            return super.visitFile(file, attrs);
                         }
-                        return super.visitFile(file, attrs);
-                    }
-                });
+                    });
+                }
             }
         }
     }
 
     /** inspect manifest for sure incompatibilities */
-    static void checkManifest(Manifest manifest, Path jar) {
+    private static void checkManifest(Manifest manifest, Path jar) {
         // give a nice error if jar requires a newer java version
         String targetVersion = manifest.getMainAttributes().getValue("X-Compile-Target-JDK");
         if (targetVersion != null) {
             checkVersionFormat(targetVersion);
             checkJavaVersion(jar.toString(), targetVersion);
         }
-
-        // give a nice error if jar is compiled against different es version
-        String systemESVersion = Version.CURRENT.toString();
-        String targetESVersion = manifest.getMainAttributes().getValue("X-Compile-Elasticsearch-Version");
-        if (targetESVersion != null && targetESVersion.equals(systemESVersion) == false) {
-            throw new IllegalStateException(jar + " requires Elasticsearch " + targetESVersion
-                    + ", your system: " + systemESVersion);
-        }
     }
 
     public static void checkVersionFormat(String targetVersion) {
-        if (!JavaVersion.isValid(targetVersion)) {
+        try {
+            Version.parse(targetVersion);
+        } catch (final IllegalArgumentException ex) {
             throw new IllegalStateException(
-                    String.format(
-                            Locale.ROOT,
-                            "version string must be a sequence of nonnegative decimal integers separated by \".\"'s and may have leading zeros but was %s",
-                            targetVersion
-                    )
+                String.format(
+                    Locale.ROOT,
+                    "version string must be a sequence of nonnegative decimal integers separated by \".\"'s and may have "
+                        + "leading zeros but was %s",
+                    targetVersion
+                )
             );
         }
     }
@@ -249,21 +272,20 @@ public class JarHell {
      * required by {@code resource} is compatible with the current installation.
      */
     public static void checkJavaVersion(String resource, String targetVersion) {
-        JavaVersion version = JavaVersion.parse(targetVersion);
-        if (JavaVersion.current().compareTo(version) < 0) {
+        Version version = Version.parse(targetVersion);
+        if (Runtime.version().compareTo(version) < 0) {
             throw new IllegalStateException(
-                    String.format(
-                            Locale.ROOT,
-                            "%s requires Java %s:, your system: %s",
-                            resource,
-                            targetVersion,
-                            JavaVersion.current().toString()
-                    )
+                String.format(Locale.ROOT, "%s requires Java %s:, your system: %s", resource, targetVersion, Runtime.version().toString())
             );
         }
     }
 
-    static void checkClass(Map<String,Path> clazzes, String clazz, Path jarpath) {
+    private static void checkClass(Map<String, Path> clazzes, String clazz, Path jarpath) {
+       if(true)return;
+    	if (clazz.equals("module-info") || clazz.endsWith(".module-info")) {
+            // Ignore jigsaw module descriptions
+            return;
+        }
         Path previous = clazzes.put(clazz, jarpath);
         if (previous != null) {
             if (previous.equals(jarpath)) {
@@ -273,20 +295,29 @@ public class JarHell {
                 // throw a better exception in this ridiculous case.
                 // unfortunately the zip file format allows this buggy possibility
                 // UweSays: It can, but should be considered as bug :-)
-                throw new IllegalStateException("jar hell!" + System.lineSeparator() +
-                        "class: " + clazz + System.lineSeparator() +
-                        "exists multiple times in jar: " + jarpath + " !!!!!!!!!");
+                throw new IllegalStateException(
+                    "jar hell!"
+                        + System.lineSeparator()
+                        + "class: "
+                        + clazz
+                        + System.lineSeparator()
+                        + "exists multiple times in jar: "
+                        + jarpath
+                        + " !!!!!!!!!"
+                );
             } else {
-                if (clazz.startsWith("org.apache.log4j")) {
-                    return; // go figure, jar hell for what should be System.out.println...
-                }
-                if (clazz.equals("org.joda.time.base.BaseDateTime")) {
-                    return; // apparently this is intentional... clean this up
-                }
-                throw new IllegalStateException("jar hell!" + System.lineSeparator() +
-                        "class: " + clazz + System.lineSeparator() +
-                        "jar1: " + previous + System.lineSeparator() +
-                        "jar2: " + jarpath);
+                throw new IllegalStateException(
+                    "jar hell!"
+                        + System.lineSeparator()
+                        + "class: "
+                        + clazz
+                        + System.lineSeparator()
+                        + "jar1: "
+                        + previous
+                        + System.lineSeparator()
+                        + "jar2: "
+                        + jarpath
+                );
             }
         }
     }

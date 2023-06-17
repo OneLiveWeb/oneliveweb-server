@@ -6,6 +6,7 @@
 	<classpathentry kind="src" path="webapp/WEB-INF/base/entermedia/src"/>
 	<classpathentry kind="src" path="webapp/WEB-INF/base/entermedia/catalog/events/scripts"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/entermedia-core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/tomcat9"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>
 			<attribute name="module" value="true"/>
@@ -22,8 +23,10 @@
 	<classpathentry kind="lib" path="lib/bsh-bsf-2.0b4.jar"/>
 	<classpathentry kind="lib" path="lib/bsh-core-2.0b4.jar"/>
 	<classpathentry kind="lib" path="lib/commons-cli-1.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-codec-1.15.jar"/>
 	<classpathentry kind="lib" path="lib/commons-fileupload-1.2.1-patched.jar"/>
 	<classpathentry kind="lib" path="lib/commons-io-2.6.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/commons-net-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/compiler-0.8.13.jar"/>
 	<classpathentry kind="lib" path="lib/compress-lzf-1.0.2.jar"/>
@@ -32,13 +35,18 @@
 	<classpathentry kind="lib" path="lib/guava-18.0.jar"/>
 	<classpathentry kind="lib" path="lib/HdrHistogram-2.1.12.jar"/>
 	<classpathentry kind="lib" path="lib/hppc-0.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/httpasyncclient-4.1.5.jar"/>
+	<classpathentry kind="lib" path="lib/httpclient-4.5.13.jar"/>
+	<classpathentry kind="lib" path="lib/httpclient5-5.1.4.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore-4.4.15.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore5-5.1.5.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore5-h2-5.1.5.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore-nio-4.4.15.jar"/>
 	<classpathentry kind="lib" path="lib/isoparser-1.1.22.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-annotations-2.8.1.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-core-2.14.2.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-dataformat-cbor-2.14.2.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-dataformat-smile-2.14.2.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-dataformat-yaml-2.14.2.jar"/>
-	<classpathentry kind="lib" path="lib/java-version-checker-2.7.0.jar"/>
+	<classpathentry kind="lib" path="lib/jakarta.json.bind-api-2.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/jakarta.json-2.0.0-module.jar"/>
+	<classpathentry kind="lib" path="lib/jakarta.json-api-2.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/java-version-checker-2.8.0.jar"/>
 	<classpathentry kind="lib" path="lib/javax.mail.jar"/>
 	<classpathentry kind="lib" path="lib/jcifs-1.3.15.jar"/>
 	<classpathentry kind="lib" path="lib/jna-4.1.0.jar"/>
@@ -49,44 +57,55 @@
 	<classpathentry kind="lib" path="lib/js.jar"/>
 	<classpathentry kind="lib" path="lib/jsch-0.1.43.jar"/>
 	<classpathentry kind="lib" path="lib/jsr166e-1.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/jsr305-3.0.2.jar"/>
 	<classpathentry kind="lib" path="lib/jts-1.13.jar"/>
 	<classpathentry kind="lib" path="lib/jts-core-1.15.0.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-api-2.17.1.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-core-2.17.1.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-jul-2.17.1.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-analysis-common-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-backward-codecs-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-core-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-grouping-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-highlighter-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-join-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-memory-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-misc-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-queries-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-queryparser-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-sandbox-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-spatial3d-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-spatial-extras-9.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-suggest-9.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-analysis-common-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-backward-codecs-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-core-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-grouping-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-highlighter-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-join-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-memory-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-misc-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-queries-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-queryparser-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-sandbox-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-spatial3d-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-spatial-extras-9.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-suggest-9.6.0.jar"/>
 	<classpathentry kind="lib" path="lib/netty-3.10.6.Final.jar"/>
-	<classpathentry kind="lib" path="lib/opensearch-2.7.0.jar"/>
-	<classpathentry kind="lib" path="lib/opensearch-cli-2.7.0.jar"/>
-	<classpathentry kind="lib" path="lib/opensearch-common-2.7.0.jar"/>
-	<classpathentry kind="lib" path="lib/opensearch-core-2.7.0.jar"/>
-	<classpathentry kind="lib" path="lib/opensearch-geo-2.7.0.jar"/>
-	<classpathentry kind="lib" path="lib/opensearch-launchers-2.7.0.jar"/>
-	<classpathentry kind="lib" path="lib/opensearch-plugin-classloader-2.7.0.jar"/>
-	<classpathentry kind="lib" path="lib/opensearch-secure-sm-2.7.0.jar"/>
-	<classpathentry kind="lib" path="lib/opensearch-x-content-2.7.0.jar"/>
+	<classpathentry kind="lib" path="lib/opensearch-2.8.0.jar" sourcepath="/home/ian/git/OpenSearch/server/src/main/java/"/>
+	<classpathentry kind="lib" path="lib/opensearch-cli-2.8.0.jar"/>
+	<classpathentry kind="lib" path="lib/opensearch-common-2.8.0.jar"/>
+	<classpathentry kind="lib" path="lib/opensearch-core-2.8.0.jar"/>
+	<classpathentry kind="lib" path="lib/opensearch-geo-2.8.0.jar"/>
+	<classpathentry kind="lib" path="lib/opensearch-java-2.4.0.jar"/>
+	<classpathentry kind="lib" path="lib/opensearch-launchers-2.8.0.jar"/>
+	<classpathentry kind="lib" path="lib/opensearch-plugin-classloader-2.8.0.jar"/>
+	<classpathentry kind="lib" path="lib/opensearch-rest-client-2.4.1.jar"/>
+	<classpathentry kind="lib" path="lib/opensearch-secure-sm-2.8.0.jar"/>
+	<classpathentry kind="lib" path="lib/opensearch-x-content-2.8.0.jar"/>
 	<classpathentry kind="lib" path="lib/org.apache.oltu.oauth2.client-1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/parsson-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox-app-2.0.25.jar"/>
 	<classpathentry kind="lib" path="lib/plugin-cli-5.6.3.jar"/>
+	<classpathentry kind="lib" path="lib/protobuf-java-3.22.3.jar"/>
 	<classpathentry kind="lib" path="lib/securesm-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.7.25.jar"/>
 	<classpathentry kind="lib" path="lib/snakeyaml-2.0.jar"/>
 	<classpathentry kind="lib" path="lib/spatial4j-0.7.jar"/>
 	<classpathentry kind="lib" path="lib/t-digest-3.2.jar"/>
 	<classpathentry kind="lib" path="lib/velocity-tools-2.0.jar"/>
 	<classpathentry kind="lib" path="lib/velocity-tools-generic-2.0.jar"/>
+	<classpathentry kind="lib" path="lib/yasson-2.0.2.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-core-2.15.1.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-dataformat-cbor-2.15.1.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-dataformat-smile-2.15.1.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-dataformat-yaml-2.15.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

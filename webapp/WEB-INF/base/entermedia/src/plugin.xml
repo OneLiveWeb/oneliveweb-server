@@ -1400,7 +1400,7 @@
 	
 	
 	<!-- Elastic Search -->
-	<bean id="elasticNodeManager" class="org.entermediadb.elasticsearch.ElasticNodeManager">
+	<bean id="elasticNodeManager" class="org.entermediadb.opensearch.ElasticNodeManager">
 		<property name="pageManager">
 			<ref bean="pageManager" />
 		</property>
