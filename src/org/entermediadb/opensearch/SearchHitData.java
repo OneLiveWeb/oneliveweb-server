@@ -4,19 +4,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.elasticsearch.common.text.Text;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHitField;
-import org.elasticsearch.search.highlight.HighlightField;
 import org.entermediadb.data.FullTextLoader;
 import org.entermediadb.location.Position;
-import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
 import org.openedit.Data;
 import org.openedit.MultiValued;
 import org.openedit.data.BaseData;
@@ -28,6 +22,8 @@ import org.openedit.data.Searcher;
 import org.openedit.data.ValuesMap;
 import org.openedit.modules.translations.LanguageMap;
 import org.openedit.util.DateStorageUtil;
+import org.opensearch.common.document.DocumentField;
+import org.opensearch.search.SearchHit;
 
 public class SearchHitData extends BaseData implements Data, MultiValued, SaveableData,SearchData 
 {
@@ -97,7 +93,7 @@ public class SearchHitData extends BaseData implements Data, MultiValued, Saveab
 
 	public Map getSearchData() {
 		if (fieldSearchData == null && getSearchHit() != null) {
-			fieldSearchData = getSearchHit().getSource();
+			fieldSearchData = getSearchHit().getSourceAsMap();
 		}
 		return fieldSearchData;
 	}
@@ -144,7 +140,8 @@ public class SearchHitData extends BaseData implements Data, MultiValued, Saveab
 				}
 				else
 				{
-					return ((FullTextLoader)getSearcher()).getFulltext(this,getSearchHit().getType());
+					String type = (String) getSearchHit().getSourceAsMap().get("olw.type");
+					return ((FullTextLoader)getSearcher()).getFulltext(this,type);
 				}
 			}
 			else
@@ -192,7 +189,7 @@ public class SearchHitData extends BaseData implements Data, MultiValued, Saveab
 		}
 
 		if (getSearchHit() != null) {
-			SearchHitField field = getSearchHit().field(key);
+			DocumentField field = getSearchHit().field(key);
 			Map fields = getSearchHit().getFields();
 			if (field != null) {
 				value = field.getValue();
@@ -339,25 +336,25 @@ public class SearchHitData extends BaseData implements Data, MultiValued, Saveab
 	}
 	
 	
-	public List getHighlights(String inField) {
-		ArrayList highlights = new ArrayList();
-
-		if(getSearchHit() == null) {
-			return highlights;
-		}
-		Map<String, HighlightField> highlightFields = getSearchHit().getHighlightFields();
-		HighlightField field = highlightFields.get(inField);
-		if(field == null) {
-			return highlights;
-		}
-		Text[] fragments = field.getFragments();
-		for (Text text : fragments)
-		{
-			String frag = text.string();
-			highlights.add(frag);
-		}
-		return highlights;
-	}
+//	public List getHighlights(String inField) {
+//		ArrayList highlights = new ArrayList();
+//
+//		if(getSearchHit() == null) {
+//			return highlights;
+//		}
+//		Map<String, org.opensearch.search.fetch.subphase.highlight.HighlightField> highlightFields = getSearchHit().getHighlightFields();
+//		HighlightField field = highlightFields.get(inField);
+//		if(field == null) {
+//			return highlights;
+//		}
+//		Text[] fragments = field.getFragments();
+//		for (Text text : fragments)
+//		{
+//			String frag = text.string();
+//			highlights.add(frag);
+//		}
+//		return highlights;
+//	}
 	
 	public Map getEmRecordStatus()
 	{

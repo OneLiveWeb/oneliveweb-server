@@ -9,7 +9,6 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
-import org.elasticsearch.action.search.ClearScrollRequest;
 import org.entermediadb.asset.SourcePathCreator;
 import org.entermediadb.data.DataArchive;
 import org.entermediadb.opensearch.ElasticHitTracker;
@@ -19,7 +18,6 @@ import org.openedit.OpenEditRuntimeException;
 import org.openedit.data.PropertyDetails;
 import org.openedit.locks.Lock;
 import org.openedit.page.Page;
-import org.openedit.page.manage.PageManager;
 import org.openedit.repository.ContentItem;
 import org.openedit.users.User;
 import org.openedit.util.IntCounter;
@@ -27,6 +25,7 @@ import org.openedit.util.PathProcessor;
 import org.openedit.xml.ElementData;
 import org.openedit.xml.XmlArchive;
 import org.openedit.xml.XmlFile;
+import org.opensearch.action.search.ClearScrollRequest;
 
 /**
  * This is not going to be used much longer

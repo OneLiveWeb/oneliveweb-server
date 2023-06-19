@@ -21,7 +21,6 @@ import org.openedit.locks.Lock;
 import org.openedit.users.User;
 import org.openedit.util.DateStorageUtil;
 
-import com.fasterxml.jackson.databind.ser.std.UUIDSerializer;
 
 public class NotificationModule extends BaseMediaModule
 {

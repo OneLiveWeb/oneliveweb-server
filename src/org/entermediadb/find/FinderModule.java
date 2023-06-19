@@ -279,7 +279,7 @@ public class FinderModule extends BaseMediaModule
 		for (Iterator iterator = hits; iterator.hasNext();)
 		{
 			SearchHitData data = (SearchHitData) iterator.next();
-			String type = data.getSearchHit().getType();
+			String type = (String) data.getSearchHit().getSourceAsMap().get("olw.type");
 			
 			Collection values = (Collection) bytypes.get(type);
 			if( values == null)

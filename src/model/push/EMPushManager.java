@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
@@ -27,7 +28,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.elasticsearch.http.HttpException;
 import org.entermediadb.asset.Asset;
 import org.entermediadb.asset.MediaArchive;
 import org.entermediadb.asset.push.PushManager;
@@ -41,7 +41,6 @@ import org.openedit.page.manage.PageManager;
 import org.openedit.repository.ContentItem;
 import org.openedit.users.User;
 import org.openedit.util.DateStorageUtil;
-import org.openedit.util.HttpMimeBuilder;
 import org.openedit.util.HttpRequestBuilder;
 import org.openedit.util.PathUtilities;
 public class EMPushManager extends BasePushManager implements PushManager

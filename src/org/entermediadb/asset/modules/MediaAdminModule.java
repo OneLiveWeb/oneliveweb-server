@@ -754,14 +754,14 @@ public class MediaAdminModule extends BaseMediaModule
 		String time = String.valueOf( Math.round( (finish - start) / 1000L) );
 		inReq.putPageValue("time", time);
 	}
-	public void listMappings(WebPageRequest inReq)
-	{
-		String catalogid = inReq.findPathValue("catalogid");
-		ElasticNodeManager manager = (ElasticNodeManager)getModuleManager().getBean(catalogid,"nodeManager");
-		String map = manager.listAllExistingMapping(catalogid);
-		inReq.putPageValue("mappingdebug",map);
-
-	}
+//	public void listMappings(WebPageRequest inReq)
+//	{
+//		String catalogid = inReq.findPathValue("catalogid");
+//		ElasticNodeManager manager = (ElasticNodeManager)getModuleManager().getBean(catalogid,"nodeManager");
+//		String map = manager.listAllExistingMapping(catalogid);
+//		inReq.putPageValue("mappingdebug",map);
+//
+//	}
 	public void makeMaster(WebPageRequest inReq)
 	{
 		MediaArchive archive = getMediaArchive(inReq);

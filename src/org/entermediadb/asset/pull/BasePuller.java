@@ -34,7 +34,7 @@ public abstract class BasePuller
 		for (Iterator iterator = inLocalchanges.iterator(); iterator.hasNext();)
 		{
 			SearchHitData hit = (SearchHitData) iterator.next();
-			Map localrecordstatus = (Map) hit.getSearchHit().getSource().get("emrecordstatus");
+			Map localrecordstatus = (Map) hit.getSearchHit().getSourceAsMap().get("emrecordstatus");
 			if( localrecordstatus == null)
 			{
 				continue;
