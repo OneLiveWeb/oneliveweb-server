@@ -461,8 +461,8 @@ public class ElasticAssetDataConnector extends ElasticXmlFileSearcher implements
 
 			search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
 			
-			search.setTypes(getSearchType());
-
+			//search.setTypes(getSearchType());
+			
 			QueryBuilder b = QueryBuilders.matchQuery("sourcepath", inValue);
 			search.setQuery(b);
 			SearchResponse response = search.execute().actionGet();
@@ -470,7 +470,7 @@ public class ElasticAssetDataConnector extends ElasticXmlFileSearcher implements
 			if (responseiter.hasNext())
 			{
 				SearchHit hit = responseiter.next();
-				return createAssetFromResponse(hit.getId(), hit.getSource());
+				return createAssetFromResponse(hit.getId(), hit.getSourceAsMap());
 
 			}
 			return null;

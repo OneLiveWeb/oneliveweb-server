@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -21,10 +22,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.join.ScoreMode;
 import org.entermediadb.asset.MediaArchive;
 import org.entermediadb.asset.cluster.IdManager;
 import org.entermediadb.data.FullTextLoader;
@@ -42,10 +43,9 @@ import org.openedit.cache.CacheManager;
 import org.openedit.data.BaseSearcher;
 import org.openedit.data.PropertyDetail;
 import org.openedit.data.PropertyDetails;
-import org.openedit.data.QueryBuilder;
+//import org.openedit.data.QueryBuilder;
 import org.openedit.data.SearchData;
 import org.openedit.data.Searcher;
-import org.openedit.hittracker.ChildFilter;
 import org.openedit.hittracker.GeoFilter;
 import org.openedit.hittracker.HitTracker;
 import org.openedit.hittracker.SearchQuery;
@@ -77,20 +77,32 @@ import org.opensearch.action.index.IndexResponse;
 import org.opensearch.action.search.ClearScrollRequest;
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchType;
+import org.opensearch.action.support.WriteRequest;
+import org.opensearch.action.support.master.AcknowledgedResponse;
 import org.opensearch.client.AdminClient;
 import org.opensearch.client.Client;
 import org.opensearch.client.Requests;
+import org.opensearch.cluster.metadata.MappingMetadata;
 import org.opensearch.common.collect.ImmutableOpenMap;
+import org.opensearch.common.geo.GeoDistance;
+import org.opensearch.common.geo.GeoPoint;
 import org.opensearch.common.unit.ByteSizeUnit;
 import org.opensearch.common.unit.ByteSizeValue;
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.common.xcontent.XContentFactory;
+import org.opensearch.common.xcontent.XContentType;
+import org.opensearch.core.xcontent.NamedXContentRegistry;
 import org.opensearch.core.xcontent.XContentBuilder;
+import org.opensearch.core.xcontent.XContentParser;
 import org.opensearch.index.engine.VersionConflictEngineException;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.GeoDistanceQueryBuilder;
+import org.opensearch.index.query.MatchPhrasePrefixQueryBuilder;
+import org.opensearch.index.query.MatchPhraseQueryBuilder;
 import org.opensearch.index.query.MatchQueryBuilder;
+import org.opensearch.index.query.Operator;
 import org.opensearch.index.query.PrefixQueryBuilder;
+import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.index.query.QueryStringQueryBuilder;
 import org.opensearch.index.query.TermQueryBuilder;
@@ -98,16 +110,20 @@ import org.opensearch.index.query.WildcardQueryBuilder;
 import org.opensearch.search.aggregations.AbstractAggregationBuilder;
 import org.opensearch.search.aggregations.AggregationBuilder;
 import org.opensearch.search.aggregations.AggregationBuilders;
+import org.opensearch.search.aggregations.AggregatorFactories;
+import org.opensearch.search.aggregations.bucket.histogram.DateHistogramAggregationBuilder;
 import org.opensearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.opensearch.search.aggregations.metrics.AvgAggregationBuilder;
 import org.opensearch.search.aggregations.metrics.SumAggregationBuilder;
+import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder.Order;
 import org.opensearch.search.sort.FieldSortBuilder;
 import org.opensearch.search.sort.SortBuilders;
+import org.opensearch.search.sort.SortOrder;
 import org.opensearch.transport.RemoteTransportException;
 
 import groovy.json.JsonOutput;
+
 
 
 
@@ -326,14 +342,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			SearchRequestBuilder search = getClient().prepareSearch(toId(getCatalogId()));
 			search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
 
-			if (getPropertyDetails().getSearchTypes() != null)
-			{
-				search.setTypes(getPropertyDetails().getSearchTypes().split(","));
-			}
-			else
-			{
-				search.setTypes(getSearchType());
-			}
+			
 
 			if (isCheckVersions())
 			{
@@ -341,6 +350,11 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			}
 			
 			BoolQueryBuilder terms = buildTerms(inQuery);
+			
+			//Replace type with a custom field:
+			QueryBuilder queryBuilder = QueryBuilders.termQuery("olwtype", getSearchType());
+			terms.must(queryBuilder);
+			
 			
 			if(!inQuery.isIncludeDeleted()) 
 			{
@@ -420,8 +434,16 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			}
 			ElasticSearchQuery q = (ElasticSearchQuery) inQuery;
 			if(q.getAggregationJson() != null) {
-				inSearch.setAggregations(q.getAggregationJson().getBytes());
-				
+				 try {
+	                    XContentParser parser = XContentFactory.xContent(XContentType.JSON)
+	                            .createParser(new NamedXContentRegistry(Collections.emptyList()),
+	                                    null, q.getAggregationJson());
+	                    AggregatorFactories.Builder aggregationBuilder = AggregatorFactories.parseAggregators(parser);
+	                    inSearch.addAggregation(aggregationBuilder.getAggregatorFactories().iterator().next());
+	                    added = true;
+	                } catch (IOException e) {
+	                    e.printStackTrace();
+	                }				
 				added = true;
 			}			
 			return added;
@@ -436,20 +458,20 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			}
 			if (detail.isDate())
 			{
-				DateHistogramBuilder builder = new DateHistogramBuilder(detail.getId() + "_breakdown_day");
+				DateHistogramAggregationBuilder builder = new DateHistogramAggregationBuilder(detail.getId() + "_breakdown_day");
 				builder.field(detail.getId());
-				builder.interval(DateHistogramInterval.DAY);
-				builder.order(Order.KEY_DESC);
+				builder.calendarInterval(DateHistogramInterval.DAY);
+				//builder.order(Order.KEY_DESC);
 				//	String timezone = TimeZone.getDefault().getID();
 				//		builder.timeZone(timezone);
 				inSearch.addAggregation(builder);
 
-				builder = new DateHistogramBuilder(detail.getId() + "_breakdown_week");
+				builder = new DateHistogramAggregationBuilder(detail.getId() + "_breakdown_week");
 				builder.field(detail.getId());
 				//	builder.timeZone(timezone);
 
-				builder.interval(DateHistogramInterval.WEEK);
-				builder.order(Order.COUNT_DESC);
+				builder.calendarInterval(DateHistogramInterval.WEEK);
+			//	builder.order(Order.COUNT_DESC);
 
 				inSearch.addAggregation(builder);
 
@@ -498,7 +520,16 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		}
 		ElasticSearchQuery q = (ElasticSearchQuery) inQuery;
 		if(q.getAggregationJson() != null) {
-			inSearch.setAggregations(q.getAggregationJson().getBytes());
+			try {
+				XContentParser parser = XContentFactory.xContent(XContentType.JSON)
+				        .createParser(new NamedXContentRegistry(Collections.emptyList()),
+				                null, q.getAggregationJson());
+				AggregatorFactories.Builder aggregationBuilder = AggregatorFactories.parseAggregators(parser);
+				inSearch.addAggregation(aggregationBuilder.getAggregatorFactories().iterator().next());
+			} catch (IOException e) {
+				throw new OpenEditException(e);
+			}
+	
 		}
 		return true;
 	}
@@ -536,20 +567,22 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 	@Override
 	public boolean initialize()
 	{
-		try
-		{
-			boolean alreadyin = getClient().admin().indices().typesExists(new TypesExistsRequest(new String[] { getElasticIndexId() }, getSearchType())).actionGet().isExists();
-			if (!alreadyin)
-			{
-				log.info("initi mapping " + getCatalogId() + "/" + getSearchType());
-				putMappings();
-			}
-		}
-		catch (Exception ex)
-		{
-			log.error("index could not be created ", ex);
-			return false;
-		}
+		
+		//TODO:  Sort out new type mappins
+//		try
+//		{
+//			boolean alreadyin = getClient().admin().indices().typesExists(new TypesExistsRequest(new String[] { getElasticIndexId() }, getSearchType())).actionGet().isExists();
+//			if (!alreadyin)
+//			{
+//				log.info("initi mapping " + getCatalogId() + "/" + getSearchType());
+//				putMappings();
+//			}
+//		}
+//		catch (Exception ex)
+//		{
+//			log.error("index could not be created ", ex);
+//			return false;
+//		}
 		return true;
 	}
 
@@ -612,14 +645,10 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		}
 
 		XContentBuilder source = buildMapping();
-		try
-		{
-			log.info(indexid + "/" + getSearchType() + "/_mapping' -d '" + source.string() + "'");
-		}
-		catch (IOException ex)
-		{
-			log.error(ex);
-		}
+	
+		
+			log.info(indexid + "/" + getSearchType() + "/_mapping' -d '" + source.toString() + "'");
+		
 		// GetMappingsRequest find = new
 		// GetMappingsRequest().types(getSearchType());
 		// GetMappingsResponse found =
@@ -670,11 +699,11 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 
 	public void putMapping(AdminClient admin, String indexid, XContentBuilder source)
 	{
-		PutMappingRequest req = Requests.putMappingRequest(indexid).updateAllTypes(true).type(getSearchType());
+		PutMappingRequest req = Requests.putMappingRequest(indexid);
 		req = req.source(source);
 
 		req.validate();
-		PutMappingResponse pres = admin.indices().putMapping(req).actionGet();
+		AcknowledgedResponse pres = admin.indices().putMapping(req).actionGet();
 
 		if (pres.isAcknowledged())
 		{
@@ -816,7 +845,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 				jsonproperties = jsonproperties.endObject();
 			}
 			jsonBuilder = jsonproperties.endObject();
-			String content = jsonproperties.string();
+			//String content = jsonproperties.string();
 		//	log.info(getSearchType() + " " + content);
 			return jsonproperties;
 		}
@@ -1059,7 +1088,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			for (Iterator iterator = inQuery.getChildren().iterator(); iterator.hasNext();)
 			{
 				SearchQuery query = (SearchQuery) iterator.next();
-				QueryBuilder builder = buildTerms(query);
+				BoolQueryBuilder builder = buildTerms(query);
 				if (inQuery.isAndTogether())
 				{
 					bool.must(builder);
@@ -1099,11 +1128,11 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			{
 				if (inAnd)
 				{
-					bool.must(find);
+					bool.must();
 				}
 				else
 				{
-					bool.should(find);
+					bool.should();
 				}
 			}
 		}
@@ -1140,7 +1169,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		if ("not".equals(inTerm.getOperation()) || "notgroup".equals(inTerm.getOperation()))
 		{
 			BoolQueryBuilder or = QueryBuilders.boolQuery();
-			or.mustNot(find);
+			or.mustNot();
 			return or;
 		}
 		else if( inDetail.getId().contains("."))
@@ -1149,7 +1178,8 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			PropertyDetail parent = getDetail(ids[0]);
 			if( parent != null && "nested".equals(parent.getDataType()))
 			{
-				find = QueryBuilders.nestedQuery(ids[0], find);
+				//TODO:  Figure out what this scoremode is
+				find = QueryBuilders.nestedQuery(ids[0], find, ScoreMode.Avg);
 			}
 			/*
 			  "nested": {
@@ -1175,7 +1205,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 	protected QueryBuilder buildNewTerm(PropertyDetail inDetail, Term inTerm, Object inValue)
 	{
 		// Check for quick date object
-		QueryBuilder find = null;
+		org.opensearch.index.query.QueryBuilder find = null;
 		String valueof = null;
 
 		if (inValue instanceof Date)
@@ -1228,13 +1258,14 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 				return null;
 			}
 		}
-		else if ("childfilter".equals(inTerm.getOperation()))
-		{
-			ChildFilter filter = (ChildFilter) inTerm;
-			QueryBuilder parent = QueryBuilders.termQuery(filter.getChildColumn(), filter.getValue());
-			QueryBuilder haschild = QueryBuilders.hasChildQuery(filter.getChildTable(), parent);
-			return haschild;
-		}
+		//TODO:  Migrate this to Join queries
+//		else if ("childfilter".equals(inTerm.getOperation()))
+//		{
+//			ChildFilter filter = (ChildFilter) inTerm;
+//			TermQueryBuilder parent = QueryBuilders.termQuery(filter.getChildColumn(), filter.getValue());
+//			QueryBuilder haschild = QueryBuilders.hasChildQuery(filter.getChildTable(), parent);
+//			return haschild;
+//		}
 
 		// if( fieldid.equals("description"))
 		// {
@@ -1311,13 +1342,14 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			or.should(text);
 
 			valueof = valueof.replace("*", "");
-			MatchQueryBuilder phrase = QueryBuilders.matchPhrasePrefixQuery(altid, valueof);
+			MatchPhrasePrefixQueryBuilder phrase = QueryBuilders.matchPhrasePrefixQuery(altid, valueof);
 			phrase.maxExpansions(75);
 			or.should(phrase);
 			find = or;
 		}
 		else if("missing".equals(inTerm.getOperation())) {
-			find = QueryBuilders.missingQuery(inTerm.getId());
+			find =  QueryBuilders.boolQuery()
+				    .mustNot(QueryBuilders.existsQuery(inTerm.getId()));
 		}
 		else if("exists".equals(inTerm.getOperation())) {
 			find= QueryBuilders.existsQuery(inTerm.getId());
@@ -1332,7 +1364,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			if (inDetail.isAnalyzed())
 			{
 
-				MatchQueryBuilder text = QueryBuilders.matchPhrasePrefixQuery(fieldid, valueof);
+				MatchPhrasePrefixQueryBuilder text = QueryBuilders.matchPhrasePrefixQuery(fieldid, valueof);
 				text.maxExpansions(10);
 				find = text;
 			}
@@ -1349,7 +1381,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 				valueof = valueof.replace("\"", "");
 				valueof = QueryParser.escape(valueof);
 				String query = "+(" + valueof + ")";
-				MatchQueryBuilder text = QueryBuilders.matchPhraseQuery(inTerm.getId(), query);
+				MatchPhraseQueryBuilder text = QueryBuilders.matchPhraseQuery(inTerm.getId(), query);
 				text.analyzer("lowersnowball");
 				find = text;
 			}
@@ -1419,7 +1451,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 					//Make a *xxx* OR xxx* search to deal with bugs
 					BoolQueryBuilder pair = QueryBuilders.boolQuery();
 					QueryStringQueryBuilder text = QueryBuilders.queryStringQuery(out.toString());
-					text.defaultOperator(QueryStringQueryBuilder.Operator.AND);
+					text.defaultOperator(Operator.AND);
 					text.analyzeWildcard(true); //This is important
 					text.allowLeadingWildcard(true);
 					text.analyzer("lowersnowball");
@@ -1428,7 +1460,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 
 					String startswith = "+(" + QueryParser.escape(word) + "*)"; //THis is needed because HL_06_19_42_DRY.WAV cant be found when searching for just HL_06_19_42_DRY
 					QueryStringQueryBuilder startw = QueryBuilders.queryStringQuery(startswith);
-					startw.defaultOperator(QueryStringQueryBuilder.Operator.AND);
+					startw.defaultOperator(Operator.AND);
 					startw.analyzer("lowersnowball");
 					startw.defaultField("description");
 					pair.should(startw);
@@ -1464,7 +1496,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		{
 			valueof = valueof.substring(0, valueof.length() - 1);
 
-			MatchQueryBuilder text = QueryBuilders.matchPhrasePrefixQuery(fieldid, valueof);
+			MatchPhrasePrefixQueryBuilder text = QueryBuilders.matchPhrasePrefixQuery(fieldid, valueof);
 			text.maxExpansions(10);
 			find = text;
 		}
@@ -1640,8 +1672,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 				GeoDistanceQueryBuilder geoDistanceFilterBuilder = new GeoDistanceQueryBuilder(inDetail.getId());
 				geoDistanceFilterBuilder.point(filter.getLatitude(), filter.getLongitude());
 				geoDistanceFilterBuilder.distance(String.valueOf(filter.getDistance()));
-				geoDistanceFilterBuilder.optimizeBbox("memory"); // Can be also "indexed" or "none"
-				geoDistanceFilterBuilder.geoDistance(GeoDistance.ARC); // Or GeoDistance.PLANE
+					geoDistanceFilterBuilder.geoDistance(GeoDistance.ARC); // Or GeoDistance.PLANE
 				find = geoDistanceFilterBuilder;
 			}
 		}
@@ -1817,7 +1848,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 
 			}
 
-			sort.ignoreUnmapped(true);
+			//sort.ignoreUnmapped(true);
 			if (direction)
 			{
 				sort.order(SortOrder.DESC);
@@ -1990,7 +2021,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 				updateMasterClusterId(details, data2, content, false);
 				updateIndex(content, data2, details, inUser);
 				content.endObject();
-				IndexRequest req = Requests.indexRequest(catid).type(getSearchType());
+				IndexRequest req = Requests.indexRequest(catid);
 				PropertyDetail parent = details.getDetail("_parent");
 				if (parent != null)
 				{
@@ -1998,7 +2029,8 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 					String _parent = data2.get(parent.getId());
 					if (_parent != null)
 					{
-						req.parent(_parent);
+						//TODO:  Figure out joins/nested etc
+					//	req.parent(_parent);
 					}
 				}
 				if (data2.getId() != null)
@@ -2230,7 +2262,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			{
 				Data data2 = (Data) iterator.next();
 
-				DeleteRequest req = Requests.deleteRequest(catid).type(getSearchType());
+				DeleteRequest req = Requests.deleteRequest(catid);
 
 				if (data2.getId() != null)
 				{
@@ -2276,33 +2308,33 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			IndexRequestBuilder builder = null;
 			if (data.getId() == null)
 			{
-				builder = getClient().prepareIndex(catid, getSearchType()); //Should we preface the id?
+				builder = getClient().prepareIndex(catid); //Should we preface the id?
 			}
 			else
 			{
-				builder = getClient().prepareIndex(catid, getSearchType(), data.getId());
+				builder = getClient().prepareIndex(catid);
 			}
 
-			PropertyDetail parent = details.getDetail("_parent");
-			if (parent != null)
-			{
-				// String _parent = data.get(parent.getListId());
-				String _parent = data.get(parent.getId());
-				if (_parent != null)
-				{
-					builder = builder.setParent(_parent);
-				}
-				else
-				{
-					return; // Can't save data that doesn't have a parent!
-				}
-			}
+//			PropertyDetail parent = details.getDetail("_parent");
+//			if (parent != null)
+//			{
+//				// String _parent = data.get(parent.getListId());
+//				String _parent = data.get(parent.getId());
+//				if (_parent != null)
+//				{
+//					builder = builder.setParent(_parent);
+//				}
+//				else
+//				{
+//					return; // Can't save data that doesn't have a parent!
+//				}
+//			}
 			updateMasterClusterId(details, data, content, delete);
 			updateIndex(content, data, details, inUser);
 			content.endObject();
 			if (log.isDebugEnabled())
 			{
-				log.info("Saving " + getSearchType() + " " + data.getId() + " = " + content.string());
+				log.info("Saving " + getSearchType() + " " + data.getId() + " = " + content.toString());
 			}
 
 			builder = builder.setSource(content);
@@ -2310,7 +2342,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 
 			if (isRefreshSaves())
 			{
-				builder = builder.setRefresh(true);
+				builder = builder.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
 			}
 			if (isCheckVersions())
 			{
@@ -2836,15 +2868,14 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 	{
 		String catid = getElasticIndexId();
 
-		GetMappingsRequest req = new GetMappingsRequest().indices(catid).types(getSearchType());
+		GetMappingsRequest req = new GetMappingsRequest().indices(catid);
 		GetMappingsResponse resp = getClient().admin().indices().getMappings(req).actionGet();
 		String indexname = getElasticNodeManager().getIndexNameFromAliasName(catid);
 		if (indexname != null)
 		{
-			ImmutableOpenMap typeMappings = resp.getMappings().get(indexname);
-			MappingMetaData mapping = (MappingMetaData) typeMappings.get(getSearchType());
+			MappingMetadata typeMappings = resp.getMappings().get(indexname);
 
-			LinkedHashMap data = (LinkedHashMap) mapping.getSourceAsMap();
+			LinkedHashMap data = (LinkedHashMap) typeMappings.getSourceAsMap();
 			Map properties = (Map) data.get("properties");
 			Object prop = properties.get(inKey);
 
@@ -2856,7 +2887,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 				jsonBuilder.startObject(inKey);
 				jsonBuilder.endObject();
 				jsonBuilder.endObject();
-				PutMappingRequest putreq = new PutMappingRequest().indices(new String[] { catid }).type(getSearchType()).source(jsonBuilder);
+				PutMappingRequest putreq = new PutMappingRequest().indices(new String[] { catid }).source(jsonBuilder);
 				getClient().admin().indices().putMapping(putreq);
 			}
 		}
@@ -2914,12 +2945,12 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		//We should not do this as much for some tables
 		String id = inData.getId();
 		//log.info(id.length());
-		DeleteRequestBuilder delete = getClient().prepareDelete(toId(getCatalogId()), getSearchType(), id);
-		if (inData.get("_parent") != null)
-		{
-			delete.setParent(inData.get("_parent"));
-		}
-		delete.setRefresh(true).execute().actionGet();
+		DeleteRequestBuilder delete = getClient().prepareDelete(toId(getCatalogId()), id);
+//		if (inData.get("_parent") != null)
+//		{
+//			delete.setParent(inData.get("_parent"));
+//		}
+		delete.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE).execute().actionGet();
 		clearIndex();
 		
 	}
@@ -2997,7 +3028,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		{
 			if (getPropertyDetails().getDetail("_parent") == null) //? what is this for? routing?
 			{
-				GetResponse response = getClient().prepareGet(toId(getCatalogId()), getSearchType(), inValue).execute().actionGet();
+				GetResponse response = getClient().prepareGet(toId(getCatalogId()),  inValue).execute().actionGet();
 				if (response.isExists())
 				{
 					Map source = response.getSource();
@@ -3334,48 +3365,48 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		}
 	}
 
-	public boolean tableExists()
-	{
-		boolean used = getClient().admin().indices().typesExists(new TypesExistsRequest(new String[] { toId(getCatalogId()) }, getSearchType())).actionGet().isExists();
-		return used;
-
-	}
-
-	@Override
-	public void reindexInternal() throws OpenEditException
-	{
-		HitTracker allhits = getAllIndexed();
-		setReIndexing(true);
-		try
-		{
-			int SIZE = 3000;
-
-			allhits.enableBulkOperations();
-			allhits.setHitsPerPage(SIZE);
-			ArrayList tosave = new ArrayList();
-			for (Iterator iterator2 = allhits.iterator(); iterator2.hasNext();)
-			{
-				Data hit = (Data) iterator2.next();
-				if( hit.getId() == null || hit.getId().trim().isEmpty())
-				{
-					continue;
-				}
-				tosave.add(hit);
-				if (tosave.size() > SIZE)
-				{
-					updateInBatch(tosave, null);
-
-					tosave.clear();
-				}
-			}
-			updateInBatch(tosave, null);
-		}
-		finally
-		{
-			setReIndexing(false);
-		}
-
-	}
+//	public boolean tableExists()
+//	{
+//		boolean used = getClient().admin().indices().typesExists(new TypesExistsRequest(new String[] { toId(getCatalogId()) }, getSearchType())).actionGet().isExists();
+//		return used;
+//
+//	}
+	//TODO:  This is a node level task now
+//	@Override
+//	public void reindexInternal() throws OpenEditException
+//	{
+//		HitTracker allhits = getAllIndexed();
+//		setReIndexing(true);
+//		try
+//		{
+//			int SIZE = 3000;
+//
+//			allhits.enableBulkOperations();
+//			allhits.setHitsPerPage(SIZE);
+//			ArrayList tosave = new ArrayList();
+//			for (Iterator iterator2 = allhits.iterator(); iterator2.hasNext();)
+//			{
+//				Data hit = (Data) iterator2.next();
+//				if( hit.getId() == null || hit.getId().trim().isEmpty())
+//				{
+//					continue;
+//				}
+//				tosave.add(hit);
+//				if (tosave.size() > SIZE)
+//				{
+//					updateInBatch(tosave, null);
+//
+//					tosave.clear();
+//				}
+//			}
+//			updateInBatch(tosave, null);
+//		}
+//		finally
+//		{
+//			setReIndexing(false);
+//		}
+//
+//	}
 
 	/**
 	 * @override
@@ -3392,25 +3423,20 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		String indexid = getElasticNodeManager().getIndexNameFromAliasName(cat);
 
 		GetMappingsResponse getMappingsResponse = getElasticNodeManager().getClient().admin().indices().getMappings(new GetMappingsRequest().indices(indexid)).actionGet();
-		ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> indexToMappings = getMappingsResponse.getMappings();
+		ImmutableOpenMap<String, MappingMetadata> indexToMappings = getMappingsResponse.getMappings();
 
-		MappingMetaData actualMapping = indexToMappings.get(indexid).get(getSearchType());
+		MappingMetadata actualMapping = indexToMappings.get(indexid);
 		if (actualMapping != null)
 		{
 			String jsonString;
-			try
-			{
+			
 				jsonString = actualMapping.source().string();
 				//				JSONObject config = (JSONObject) new JSONParser().parse(returned);
 				jsonString = JsonOutput.prettyPrint(jsonString);
 				//				JSONObject json = new JSONObject(jsonString); // Convert text to object
 				//				SjsonString = json.toString(4);
 				return jsonString;
-			}
-			catch (IOException e)
-			{
-				new OpenEditException(e);
-			}
+			
 
 		}
 		return null;
@@ -3479,8 +3505,8 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			for (Iterator iterator = inJsonArray.iterator(); iterator.hasNext();)
 			{
 				JSONObject json = (JSONObject) iterator.next();
-
-				IndexRequest req = Requests.indexRequest(getElasticIndexId()).type(getSearchType());
+				json.put("olw.type", getSearchType());
+				IndexRequest req = Requests.indexRequest(getElasticIndexId());
 				req.source(json.toJSONString());
 				//log.info("savinng " + json);
 				//Parse the json and save it with id
@@ -3508,7 +3534,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 	{
 
 		BulkProcessor processor = getElasticNodeManager().getBulkProcessor();
-		IndexRequest req = Requests.indexRequest(getElasticIndexId()).type(getSearchType());
+		IndexRequest req = Requests.indexRequest(getElasticIndexId());
 		req.source(json.toJSONString());
 		req.id(inID);
 
@@ -3516,23 +3542,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 
 	}
 
-	public HitTracker getAllIndexed()
-	{
-		SearchRequestBuilder search = getClient().prepareSearch(toId(getCatalogId()));
-		search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
-		search.setTypes(getSearchType());
-		search.setRequestCache(true);
-		QueryBuilder findall = QueryBuilders.matchAllQuery();
-		search.setQuery(findall);
-
-		ElasticHitTracker hits = new ElasticHitTracker(getClient(), search, findall, 1000);
-		hits.enableBulkOperations();
-		hits.setSearcherManager(getSearcherManager());
-		//String inIndexId = toId(getCatalogId());
-		hits.setIndexId(getIndexId());
-		hits.setCatalogId(getCatalogId());
-		return hits;
-	}
+	
 
 	@Override
 	public String getFulltext(Data inSearchHitData)

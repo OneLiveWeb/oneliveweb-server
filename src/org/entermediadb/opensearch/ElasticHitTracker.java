@@ -230,7 +230,7 @@ public class ElasticHitTracker extends HitTracker
 					if(fieldActiveFilterValues == null && response.getAggregations() != null ) 
 					{
 						fieldActiveFilterValues = loadValuesFromResults(response); //This will load the values
-					    getSearcheRequestBuilder().setAggregations(new HashMap());  //this keeps is from loading the same values on page 2,3+ etc
+					  //  getSearcheRequestBuilder().setAggregations(new HashMap());  //this keeps is from loading the same values on page 2,3+ etc
 					}
 					else
 					{
@@ -238,7 +238,7 @@ public class ElasticHitTracker extends HitTracker
 						{
 							fieldActiveFilterValues = Collections.EMPTY_MAP;
 						}
-					    getSearcheRequestBuilder().setAggregations(new HashMap());
+					//    getSearcheRequestBuilder().setAggregations(new HashMap());
 					}
 				}
 			}
@@ -303,7 +303,7 @@ public class ElasticHitTracker extends HitTracker
 					for (Iterator iterator2 = f.getBuckets().iterator(); iterator2.hasNext();)
 					{
 						//	org.elasticsearch.search.aggregations.bucket.terms.StringTerms.Bucket entry = (org.elasticsearch.search.aggregations.bucket.terms.StringTerms.Bucket) iterator2.next();
-						org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket entry = (org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket) iterator2.next();
+						org.opensearch.search.aggregations.bucket.terms.Terms.Bucket entry = (org.opensearch.search.aggregations.bucket.terms.Terms.Bucket) iterator2.next();
 
 						long count = entry.getDocCount();
 						String term = entry.getKeyAsString();
@@ -397,7 +397,7 @@ public class ElasticHitTracker extends HitTracker
 		Searcher searcher = (Searcher)getSearcher();
 		if( searcher == null && getSearcherManager() != null)
 		{
-			searcher = getSearcherManager().getSearcher(getCatalogId(), hit.getType());
+			searcher = getSearcherManager().getSearcher(getCatalogId(), (String) hit.getSourceAsMap().get("olw.type"));
 		}
 		SearchHitData data = new SearchHitData(hit, searcher);
 
@@ -427,25 +427,25 @@ public class ElasticHitTracker extends HitTracker
 		return (int) getSearchResponse(0).getHits().getTotalHits().value;
 	}
 
-	public double getSum(String inField, String inSummarizer)
-	{
-		double total = 0;
-//		Map map = getAggregations().asMap();
-//		map.get(inField);
-		Terms terms = (Terms)getAggregations().get(inField);
-		if( terms != null)
-		{
-			Collection<Terms.Bucket> buckets = terms.getBuckets(); 
-		
-			for(Terms.Bucket bucket : buckets)
-			{
-				Sum aggregation = bucket.getAggregations().get(inSummarizer);
-				double count = aggregation.getValue();				
-				total = total + count;
-			}
-		}
-		return total;
-	}
+//	public double getSum(String inField, String inSummarizer)
+//	{
+//		double total = 0;
+////		Map map = getAggregations().asMap();
+////		map.get(inField);
+//		Terms terms = (Terms)getAggregations().get(inField);
+//		if( terms != null)
+//		{
+//			Collection<Terms.Bucket> buckets = terms.getBuckets(); 
+//		
+//			for(Terms.Bucket bucket : buckets)
+//			{
+//				Sum aggregation = bucket.getAggregations().get(inSummarizer);
+//				double count = aggregation.getValue();				
+//				total = total + count;
+//			}
+//		}
+//		return total;
+//	}
 	
 
 //	public double getAggregation(String inId)
@@ -503,7 +503,7 @@ public class ElasticHitTracker extends HitTracker
 						{
 
 							//	org.elasticsearch.search.aggregations.bucket.terms.StringTerms.Bucket entry = (org.elasticsearch.search.aggregations.bucket.terms.StringTerms.Bucket) iterator2.next();
-							org.elasticsearch.search.aggregations.bucket.histogram.Histogram.Bucket entry = (org.elasticsearch.search.aggregations.bucket.histogram.Histogram.Bucket) iterator2.next();
+							org.opensearch.search.aggregations.bucket.histogram.Histogram.Bucket entry = (org.opensearch.search.aggregations.bucket.histogram.Histogram.Bucket) iterator2.next();
 
 							long count = entry.getDocCount();
 							String term = entry.getKeyAsString();
@@ -543,7 +543,7 @@ public class ElasticHitTracker extends HitTracker
 		Aggregations agregations = getAggregations();
 		if( agregations != null)
 		{
-			org.elasticsearch.search.aggregations.bucket.terms.Terms terms = agregations.get(inName);
+			org.opensearch.search.aggregations.bucket.terms.Terms terms = agregations.get(inName);
 			if( terms != null)
 			{
 				for (Iterator iterator = terms.getBuckets().iterator(); iterator.hasNext();)

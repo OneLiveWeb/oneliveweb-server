@@ -15,6 +15,7 @@ import org.openedit.hittracker.SearchQuery;
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchType;
 import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.index.query.TermQueryBuilder;
 
@@ -40,8 +41,7 @@ public class ElasticModuleSearchSearcher extends BaseElasticSearcher
 		SearchRequestBuilder search = getClient().prepareSearch(toId(getCatalogId()));
 		search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
 		
-		search.setTypes((String[])searchmodules.toArray(new String[searchmodules.size()]));
-
+		
 		/*
 		//TODO: Auto added from advancedfilter
 		AggregationBuilder b = AggregationBuilders.terms("keywords").field("keywords" + ".exact").size(100);
@@ -78,6 +78,11 @@ public class ElasticModuleSearchSearcher extends BaseElasticSearcher
 		search.setRequestCache(false);  //What does this do?
 
 		BoolQueryBuilder terms = buildTerms(inQuery);
+		
+		//search.setTypes((String[])searchmodules.toArray(new String[searchmodules.size()]));
+		QueryBuilder queryBuilder = QueryBuilders.termQuery("olwtype", getSearchType());
+		terms.must(queryBuilder);
+		
 
 		addFacets(inQuery,search);
 
