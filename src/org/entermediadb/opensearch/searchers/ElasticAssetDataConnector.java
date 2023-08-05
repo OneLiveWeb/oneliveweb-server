@@ -2,29 +2,13 @@ package org.entermediadb.opensearch.searchers;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
-import org.elasticsearch.action.bulk.BulkProcessor;
-import org.elasticsearch.action.delete.DeleteRequestBuilder;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.client.Requests;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.entermediadb.asset.Asset;
 import org.entermediadb.asset.AssetArchive;
 import org.entermediadb.asset.MediaArchive;
@@ -32,8 +16,6 @@ import org.entermediadb.asset.search.AssetSecurityArchive;
 import org.entermediadb.asset.search.DataConnector;
 import org.entermediadb.data.DataArchive;
 import org.entermediadb.opensearch.SearchHitData;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.openedit.Data;
 import org.openedit.MultiValued;
 import org.openedit.OpenEditException;
@@ -43,9 +25,16 @@ import org.openedit.locks.Lock;
 import org.openedit.repository.ContentItem;
 import org.openedit.users.User;
 import org.openedit.util.IntCounter;
-import org.openedit.util.OutputFiller;
-import org.openedit.util.PathProcessor;
 import org.openedit.util.PathUtilities;
+import org.opensearch.action.delete.DeleteRequestBuilder;
+import org.opensearch.action.get.GetResponse;
+import org.opensearch.action.search.SearchRequestBuilder;
+import org.opensearch.action.search.SearchResponse;
+import org.opensearch.action.search.SearchType;
+import org.opensearch.core.xcontent.XContentBuilder;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.SearchHit;
 
 public class ElasticAssetDataConnector extends ElasticXmlFileSearcher implements DataConnector
 {
@@ -75,8 +64,8 @@ public class ElasticAssetDataConnector extends ElasticXmlFileSearcher implements
 	public void deleteFromIndex(String inId)
 	{
 		// TODO Auto-generated method stub
-		DeleteRequestBuilder delete = getClient().prepareDelete(toId(getCatalogId()), getSearchType(), inId);
-		delete.setRefresh(true).execute().actionGet();
+		DeleteRequestBuilder delete = getClient().prepareDelete(toId(getCatalogId()),  inId);
+		delete.execute().actionGet();
 		// delete()
 	}
 
@@ -449,7 +438,7 @@ public class ElasticAssetDataConnector extends ElasticXmlFileSearcher implements
 	{
 		if (inField.equals("id") || inField.equals("_id"))
 		{
-			GetResponse response = getClient().prepareGet(toId(getCatalogId()), getSearchType(), inValue).execute().actionGet();
+			GetResponse response = getClient().prepareGet(toId(getCatalogId()),  inValue).execute().actionGet();
 			if (!response.isExists())
 			{
 				return null;
@@ -471,8 +460,9 @@ public class ElasticAssetDataConnector extends ElasticXmlFileSearcher implements
 			SearchRequestBuilder search = getClient().prepareSearch(toId(getCatalogId()));
 
 			search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
-			search.setTypes(getSearchType());
-
+			
+			//search.setTypes(getSearchType());
+			
 			QueryBuilder b = QueryBuilders.matchQuery("sourcepath", inValue);
 			search.setQuery(b);
 			SearchResponse response = search.execute().actionGet();
@@ -480,7 +470,7 @@ public class ElasticAssetDataConnector extends ElasticXmlFileSearcher implements
 			if (responseiter.hasNext())
 			{
 				SearchHit hit = responseiter.next();
-				return createAssetFromResponse(hit.getId(), hit.getSource());
+				return createAssetFromResponse(hit.getId(), hit.getSourceAsMap());
 
 			}
 			return null;

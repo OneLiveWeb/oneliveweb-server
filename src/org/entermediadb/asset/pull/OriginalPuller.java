@@ -684,7 +684,8 @@ public class OriginalPuller extends BasePuller implements CatalogEnabled
 		for (Iterator iterator = inHits.getPageOfHits().iterator(); iterator.hasNext();)
 		{
 			SearchHitData data = (SearchHitData) iterator.next();
-			String searchtype = data.getSearchHit().getType();
+			
+			String searchtype = (String) data.getSearchHit().getSourceAsMap().get("olw.type");
 			if (searchtype.equals("asset")) 
 			{
 				//Data hit = (Data) iterator.next();

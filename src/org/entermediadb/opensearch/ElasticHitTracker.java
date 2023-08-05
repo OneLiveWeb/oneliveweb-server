@@ -12,7 +12,10 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+<<<<<<< HEAD
 import org.apache.lucene.queryparser.flexible.core.builders.QueryBuilder;
+=======
+>>>>>>> branch 'master' of https://github.com/OneLiveWeb/oneliveweb-server.git
 import org.json.simple.parser.ParseException;
 import org.openedit.Data;
 import org.openedit.OpenEditException;
@@ -22,6 +25,7 @@ import org.openedit.data.SearcherManager;
 import org.openedit.hittracker.FilterNode;
 import org.openedit.hittracker.HitTracker;
 import org.openedit.hittracker.SearchQuery;
+<<<<<<< HEAD
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.client.Client;
@@ -33,6 +37,21 @@ import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.aggregations.Aggregations;
 import org.opensearch.search.aggregations.InternalMultiBucketAggregation.InternalBucket;
+=======
+import org.opensearch.action.search.ClearScrollRequest;
+import org.opensearch.action.search.SearchRequestBuilder;
+import org.opensearch.action.search.SearchResponse;
+import org.opensearch.client.Client;
+import org.opensearch.common.unit.TimeValue;
+import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.SearchHit;
+import org.opensearch.search.aggregations.Aggregation;
+import org.opensearch.search.aggregations.Aggregations;
+import org.opensearch.search.aggregations.InternalMultiBucketAggregation.InternalBucket;
+import org.opensearch.search.aggregations.bucket.histogram.Histogram;
+>>>>>>> branch 'master' of https://github.com/OneLiveWeb/oneliveweb-server.git
 import org.opensearch.search.aggregations.bucket.terms.Terms;
 import org.opensearch.search.aggregations.metrics.Avg;
 import org.opensearch.search.aggregations.metrics.InternalSum;
@@ -230,7 +249,7 @@ public class ElasticHitTracker extends HitTracker
 					if(fieldActiveFilterValues == null && response.getAggregations() != null ) 
 					{
 						fieldActiveFilterValues = loadValuesFromResults(response); //This will load the values
-					    getSearcheRequestBuilder().setAggregations(new HashMap());  //this keeps is from loading the same values on page 2,3+ etc
+					  //  getSearcheRequestBuilder().setAggregations(new HashMap());  //this keeps is from loading the same values on page 2,3+ etc
 					}
 					else
 					{
@@ -238,7 +257,7 @@ public class ElasticHitTracker extends HitTracker
 						{
 							fieldActiveFilterValues = Collections.EMPTY_MAP;
 						}
-					    getSearcheRequestBuilder().setAggregations(new HashMap());
+					//    getSearcheRequestBuilder().setAggregations(new HashMap());
 					}
 				}
 			}
@@ -303,7 +322,7 @@ public class ElasticHitTracker extends HitTracker
 					for (Iterator iterator2 = f.getBuckets().iterator(); iterator2.hasNext();)
 					{
 						//	org.elasticsearch.search.aggregations.bucket.terms.StringTerms.Bucket entry = (org.elasticsearch.search.aggregations.bucket.terms.StringTerms.Bucket) iterator2.next();
-						org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket entry = (org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket) iterator2.next();
+						org.opensearch.search.aggregations.bucket.terms.Terms.Bucket entry = (org.opensearch.search.aggregations.bucket.terms.Terms.Bucket) iterator2.next();
 
 						long count = entry.getDocCount();
 						String term = entry.getKeyAsString();
@@ -397,7 +416,7 @@ public class ElasticHitTracker extends HitTracker
 		Searcher searcher = (Searcher)getSearcher();
 		if( searcher == null && getSearcherManager() != null)
 		{
-			searcher = getSearcherManager().getSearcher(getCatalogId(), hit.getType());
+			searcher = getSearcherManager().getSearcher(getCatalogId(), (String) hit.getSourceAsMap().get("olw.type"));
 		}
 		SearchHitData data = new SearchHitData(hit, searcher);
 
@@ -424,28 +443,28 @@ public class ElasticHitTracker extends HitTracker
 			return 0;
 		}
 
-		return (int) getSearchResponse(0).getHits().getTotalHits();
+		return (int) getSearchResponse(0).getHits().getTotalHits().value;
 	}
 
-	public double getSum(String inField, String inSummarizer)
-	{
-		double total = 0;
-//		Map map = getAggregations().asMap();
-//		map.get(inField);
-		Terms terms = (Terms)getAggregations().get(inField);
-		if( terms != null)
-		{
-			Collection<Terms.Bucket> buckets = terms.getBuckets(); 
-		
-			for(Terms.Bucket bucket : buckets)
-			{
-				Sum aggregation = bucket.getAggregations().get(inSummarizer);
-				double count = aggregation.getValue();				
-				total = total + count;
-			}
-		}
-		return total;
-	}
+//	public double getSum(String inField, String inSummarizer)
+//	{
+//		double total = 0;
+////		Map map = getAggregations().asMap();
+////		map.get(inField);
+//		Terms terms = (Terms)getAggregations().get(inField);
+//		if( terms != null)
+//		{
+//			Collection<Terms.Bucket> buckets = terms.getBuckets(); 
+//		
+//			for(Terms.Bucket bucket : buckets)
+//			{
+//				Sum aggregation = bucket.getAggregations().get(inSummarizer);
+//				double count = aggregation.getValue();				
+//				total = total + count;
+//			}
+//		}
+//		return total;
+//	}
 	
 
 //	public double getAggregation(String inId)
@@ -503,7 +522,7 @@ public class ElasticHitTracker extends HitTracker
 						{
 
 							//	org.elasticsearch.search.aggregations.bucket.terms.StringTerms.Bucket entry = (org.elasticsearch.search.aggregations.bucket.terms.StringTerms.Bucket) iterator2.next();
-							org.elasticsearch.search.aggregations.bucket.histogram.Histogram.Bucket entry = (org.elasticsearch.search.aggregations.bucket.histogram.Histogram.Bucket) iterator2.next();
+							org.opensearch.search.aggregations.bucket.histogram.Histogram.Bucket entry = (org.opensearch.search.aggregations.bucket.histogram.Histogram.Bucket) iterator2.next();
 
 							long count = entry.getDocCount();
 							String term = entry.getKeyAsString();
@@ -543,7 +562,7 @@ public class ElasticHitTracker extends HitTracker
 		Aggregations agregations = getAggregations();
 		if( agregations != null)
 		{
-			org.elasticsearch.search.aggregations.bucket.terms.Terms terms = agregations.get(inName);
+			org.opensearch.search.aggregations.bucket.terms.Terms terms = agregations.get(inName);
 			if( terms != null)
 			{
 				for (Iterator iterator = terms.getBuckets().iterator(); iterator.hasNext();)

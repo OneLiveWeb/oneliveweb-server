@@ -3,9 +3,8 @@
  */
 package org.entermediadb.opensearch;
 
-import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.openedit.hittracker.SearchQuery;
-import org.openedit.hittracker.Term;
+import org.opensearch.search.aggregations.AbstractAggregationBuilder;
 
 public class ElasticSearchQuery extends SearchQuery
 {	

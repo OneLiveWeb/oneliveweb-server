@@ -25,19 +25,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.lucene.queryparser.xml.builders.RangeQueryBuilder;
 import org.dom4j.Element;
 import org.entermediadb.asset.MediaArchive;
 import org.entermediadb.asset.cluster.BaseNodeManager;
-import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
-import org.entermediadb.opensearch.searchers.LockSearcher;
 import org.openedit.Data;
 import org.openedit.OpenEditException;
 import org.openedit.Shutdownable;
 import org.openedit.cache.CacheManager;
-import org.openedit.data.PropertyDetailsArchive;
-import org.openedit.data.Searcher;
-import org.openedit.hittracker.HitTracker;
 import org.openedit.locks.Lock;
 import org.openedit.locks.LockManager;
 import org.openedit.page.Page;
@@ -53,19 +47,13 @@ import org.opensearch.action.admin.cluster.snapshots.create.CreateSnapshotReques
 import org.opensearch.action.admin.cluster.snapshots.get.GetSnapshotsAction;
 import org.opensearch.action.admin.cluster.snapshots.get.GetSnapshotsRequestBuilder;
 import org.opensearch.action.admin.cluster.snapshots.get.GetSnapshotsResponse;
-import org.opensearch.action.admin.cluster.snapshots.restore.RestoreSnapshotAction;
-import org.opensearch.action.admin.cluster.snapshots.restore.RestoreSnapshotRequestBuilder;
-import org.opensearch.action.admin.cluster.snapshots.restore.RestoreSnapshotResponse;
+import org.opensearch.action.admin.indices.alias.get.GetAliasesRequest;
+import org.opensearch.action.admin.indices.alias.get.GetAliasesResponse;
 import org.opensearch.action.admin.indices.cache.clear.ClearIndicesCacheRequest;
-import org.opensearch.action.admin.indices.close.CloseIndexAction;
-import org.opensearch.action.admin.indices.close.CloseIndexRequestBuilder;
 import org.opensearch.action.admin.indices.create.CreateIndexResponse;
 import org.opensearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.opensearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.opensearch.action.admin.indices.exists.indices.IndicesExistsResponse;
-import org.opensearch.action.admin.indices.mapping.get.GetMappingsRequest;
-import org.opensearch.action.admin.indices.mapping.get.GetMappingsResponse;
-import org.opensearch.action.admin.indices.open.OpenIndexRequest;
 import org.opensearch.action.admin.indices.refresh.RefreshRequest;
 import org.opensearch.action.admin.indices.refresh.RefreshResponse;
 import org.opensearch.action.bulk.BackoffPolicy;
@@ -74,35 +62,22 @@ import org.opensearch.action.bulk.BulkProcessor;
 import org.opensearch.action.bulk.BulkProcessor.Listener;
 import org.opensearch.action.bulk.BulkRequest;
 import org.opensearch.action.bulk.BulkResponse;
-import org.opensearch.action.search.SearchRequestBuilder;
-import org.opensearch.action.search.SearchType;
 import org.opensearch.action.support.master.AcknowledgedResponse;
 import org.opensearch.client.AdminClient;
 import org.opensearch.client.Client;
 import org.opensearch.client.Requests;
-import org.opensearch.cluster.metadata.IndexAbstraction;
-import org.opensearch.cluster.metadata.IndexMetadata;
+import org.opensearch.cluster.metadata.AliasMetadata;
 import org.opensearch.common.collect.ImmutableOpenMap;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.common.settings.Settings.Builder;
 import org.opensearch.common.unit.ByteSizeUnit;
 import org.opensearch.common.unit.ByteSizeValue;
 import org.opensearch.common.unit.TimeValue;
-import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.env.Environment;
-import org.opensearch.index.query.IdsQueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.node.Node;
 import org.opensearch.node.NodeValidationException;
 import org.opensearch.snapshots.SnapshotInfo;
 import org.opensearch.transport.RemoteTransportException;
-
-import com.carrotsearch.hppc.ObjectLookupContainer;
-import com.carrotsearch.hppc.cursors.ObjectCursor;
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
-
-import groovy.json.JsonOutput;
-
 
 //ES5 class MyNode extends Node {
 //    public MyNode(Settings preparedSettings, Collection<Class<? extends Plugin>> classpathPlugins) {
@@ -110,14 +85,11 @@ import groovy.json.JsonOutput;
 //    }
 //}
 
-public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
-{
+public class ElasticNodeManager extends BaseNodeManager implements Shutdownable {
 	protected Log log = LogFactory.getLog(ElasticNodeManager.class);
 
-	
 	private Node node;
-	
-	
+
 	protected Client fieldClient;
 	protected boolean fieldShutdown = false;
 	protected List fieldMappingErrors;
@@ -128,52 +100,44 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 	protected BulkProcessor fieldBulkProcessor;
 	protected ArrayList fieldBulkErrors = new ArrayList();
 
-	public static String[] synctypes = new String[] { "library","category", "asset", "librarycollection","convertpreset","presetparameter"};
+	public static String[] synctypes = new String[] { "library", "category", "asset", "librarycollection",
+			"convertpreset", "presetparameter" };
 	public static Collection synctypesCol = Arrays.asList(synctypes);
 
-	public CacheManager getCacheManager()
-	{
+	public CacheManager getCacheManager() {
 		return fieldCacheManager;
 	}
 
-	public void setCacheManager(CacheManager inCacheManager)
-	{
+	public void setCacheManager(CacheManager inCacheManager) {
 		fieldCacheManager = inCacheManager;
 	}
 
-	protected void loadSettings()
-	{
+	protected void loadSettings() {
 		// TODO Auto-generated method stub
-		//TODO: Move node.xml to system
-		//TODO: add locking file for this node and remove it when done
+		// TODO: Move node.xml to system
+		// TODO: add locking file for this node and remove it when done
 
-		Page config = getPageManager().getPage("/WEB-INF/node.xml"); //Legacy DO Not use REMOVE sometime
-		if (!config.exists())
-		{
-			//throw new OpenEditException("Missing " + config.getPath());
+		Page config = getPageManager().getPage("/WEB-INF/node.xml"); // Legacy DO Not use REMOVE sometime
+		if (!config.exists()) {
+			// throw new OpenEditException("Missing " + config.getPath());
 			config = getPageManager().getPage("/system/configuration/node.xml");
 		}
 
-		if (!config.exists())
-		{
+		if (!config.exists()) {
 			throw new OpenEditException("WEB-INF/node.xml is not defined");
 		}
 		Element root = getXmlUtil().getXml(config.getInputStream(), "UTF-8");
 
 		fieldLocalNode = new org.openedit.node.Node();
 		String nodeid = getWebServer().getNodeId();
-		if (nodeid == null)
-		{
+		if (nodeid == null) {
 			nodeid = root.attributeValue("id");
 		}
-		if (nodeid == null)
-		{
-			for (Iterator iterator = root.elementIterator(); iterator.hasNext();)
-			{
+		if (nodeid == null) {
+			for (Iterator iterator = root.elementIterator(); iterator.hasNext();) {
 				Element ele = (Element) iterator.next();
 				String key = ele.attributeValue("id");
-				if (key.equals("node.name"))
-				{
+				if (key.equals("node.name")) {
 					nodeid = ele.getTextTrim();
 					break;
 				}
@@ -187,14 +151,15 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 		String webroot = parent.getParentFile().getParentFile().getAbsolutePath();
 		params.put("webroot", webroot);
 		params.put("nodeid", getLocalNodeId());
-	//	https://stackoverflow.com/questions/41298467/how-to-start-elasticsearch-5-1-embedded-in-my-java-application/41299436#41299436
-	//	getLocalNode().setValue("path.plugins", webroot + "/WEB-INF/base/entermedia/elasticplugins");
+		// https://stackoverflow.com/questions/41298467/how-to-start-elasticsearch-5-1-embedded-in-my-java-application/41299436#41299436
+		// getLocalNode().setValue("path.plugins", webroot +
+		// "/WEB-INF/base/entermedia/elasticplugins");
 
 		Replacer replace = new Replacer();
 
-		Element basenode = getXmlUtil().getXml(getPageManager().getPage("/system/configuration/basenode.xml").getInputStream(), "UTF-8");
-		for (Iterator iterator = basenode.elementIterator(); iterator.hasNext();)
-		{
+		Element basenode = getXmlUtil()
+				.getXml(getPageManager().getPage("/system/configuration/basenode.xml").getInputStream(), "UTF-8");
+		for (Iterator iterator = basenode.elementIterator(); iterator.hasNext();) {
 			Element ele = (Element) iterator.next();
 			String key = ele.attributeValue("id");
 			String val = ele.getTextTrim();
@@ -202,15 +167,14 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 			getLocalNode().setValue(key, val);
 		}
 
-		for (Iterator iterator = root.elementIterator(); iterator.hasNext();)
-		{
+		for (Iterator iterator = root.elementIterator(); iterator.hasNext();) {
 			Element ele = (Element) iterator.next();
 			String key = ele.attributeValue("id");
 			String val = ele.getTextTrim();
-			//if( val.startsWith("."))
-			//{
+			// if( val.startsWith("."))
+			// {
 			val = replace.replace(val, params);
-			//}
+			// }
 			getLocalNode().setValue(key, val);
 		}
 		getLocalNode().setValue("node.name", nodeid);
@@ -219,172 +183,150 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 
 	protected boolean reindexing = false;
 
-	public List getMappingErrors()
-	{
-		if (fieldMappingErrors == null)
-		{
+	public List getMappingErrors() {
+		if (fieldMappingErrors == null) {
 			fieldMappingErrors = new ArrayList<>();
 		}
 		return fieldMappingErrors;
 	}
 
-	public void setMappingErrors(List inMappingErrors)
-	{
+	public void setMappingErrors(List inMappingErrors) {
 		fieldMappingErrors = inMappingErrors;
 	}
 
-	public Client getClient()
-	{
-		if (fieldShutdown == false && fieldClient == null)
-		{
-			synchronized (this)
-			{
-				if (fieldClient != null)
-				{
+	public Client getClient() {
+		if (fieldShutdown == false && fieldClient == null) {
+			synchronized (this) {
+				if (fieldClient != null) {
 					return fieldClient;
 				}
-				
-				//NodeBuilder nb = NodeBuilder.nodeBuilder();
-				 Settings.Builder preparedsettings = Settings.builder();
 
-				for (Iterator iterator = getLocalNode().getProperties().keySet().iterator(); iterator.hasNext();)
-				{
+				// NodeBuilder nb = NodeBuilder.nodeBuilder();
+				Settings.Builder preparedsettings = Settings.builder();
+
+				for (Iterator iterator = getLocalNode().getProperties().keySet().iterator(); iterator.hasNext();) {
 					String key = (String) iterator.next();
-					if (!key.startsWith("index.") && !key.startsWith("entermedia.") && key.contains(".")) //Legacy
+					if (!key.startsWith("index.") && !key.startsWith("entermedia.") && key.contains(".")) // Legacy
 					{
 						String val = getLocalNode().getSetting(key);
-						//ES5: preparedsettings.put(key, val);
+						// ES5: preparedsettings.put(key, val);
 						preparedsettings.put(key, val);
 					}
 				}
 				Environment env = new Environment(preparedsettings.build(), null);
-				//https://stackoverflow.com/questions/50509674/elasticsearch-6-2-start-a-localhost-http-node-in-unit-test
+				// https://stackoverflow.com/questions/50509674/elasticsearch-6-2-start-a-localhost-http-node-in-unit-test
 				fieldNode = new Node(env);
 				try {
 					fieldNode.start();
 				} catch (NodeValidationException e) {
-				throw new OpenEditException(e);
+					throw new OpenEditException(e);
 				}
 
-				fieldClient = fieldNode.client(); //when this line executes, I get the error in the other node 
-				//nb.settings().put("index.mapper.dynamic",false);
+				fieldClient = fieldNode.client(); // when this line executes, I get the error in the other node
+				// nb.settings().put("index.mapper.dynamic",false);
 
-				//			     <property id="path.plugins">${webroot}/WEB-INF/base/entermedia/elasticplugins</property>
+				// <property
+				// id="path.plugins">${webroot}/WEB-INF/base/entermedia/elasticplugins</property>
 
-				//extras
-				//nb.settings().put("index.store.type", "mmapfs");
-				//nb.settings().put("index.store.fs.mmapfs.enabled", "true");
-				//nb.settings().put("index.merge.policy.merge_factor", "20");
+				// extras
+				// nb.settings().put("index.store.type", "mmapfs");
+				// nb.settings().put("index.store.fs.mmapfs.enabled", "true");
+				// nb.settings().put("index.merge.policy.merge_factor", "20");
 				// nb.settings().put("discovery.zen.ping.unicast.hosts", "localhost:9300");
-				// nb.settings().put("discovery.zen.ping.unicast.hosts", elasticSearchHostsList);
-				//fieldNode = nb.node();
-				//fieldClient = fieldNode.client(); //when this line executes, I get the error in the other node 
+				// nb.settings().put("discovery.zen.ping.unicast.hosts",
+				// elasticSearchHostsList);
+				// fieldNode = nb.node();
+				// fieldClient = fieldNode.client(); //when this line executes, I get the error
+				// in the other node
 
 			}
 		}
 		return fieldClient;
 	}
 
-	//called from the lock manager
-	public void shutdown()
-	{
+	// called from the lock manager
+	public void shutdown() {
 
-		try
-		{
-			synchronized (this)
-			{
+		try {
+			synchronized (this) {
 
-				if (!fieldShutdown)
-				{
-					if (fieldClient != null)
-					{
-						try
-						{
-							//TODO: Should we call FlushRequest req = Requests.flushRequest(toId(getCatalogId()));  ? To The disk drive
+				if (!fieldShutdown) {
+					if (fieldClient != null) {
+						try {
+							// TODO: Should we call FlushRequest req =
+							// Requests.flushRequest(toId(getCatalogId())); ? To The disk drive
 							fieldClient.close();
-						}
-						finally
-						{
-							if (fieldNode != null)
-							{
+						} finally {
+							if (fieldNode != null) {
 								fieldNode.close();
 							}
 							fieldNode.close();
 						}
 					}
-					if (fieldNode != null)
-					{
+					if (fieldNode != null) {
 						fieldNode.close();
 					}
 				}
 				fieldShutdown = true;
 				System.out.println("Elastic shutdown complete");
 			}
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			System.out.println("Elastic shutdown failed");
 			e.printStackTrace();
 			throw new OpenEditException(e);
 		}
 	}
 
-	public String toId(String inId)
-	{
+	public String toId(String inId) {
 		String id = inId.replace('/', '_');
 		return id;
 	}
 
-	protected LockManager getLockManager(String inCatalogId)
-	{
+	protected LockManager getLockManager(String inCatalogId) {
 		return getSearcherManager().getLockManager(inCatalogId);
 	}
 
-	public String createSnapShot(String inCatalogId, boolean wholecluster)
-	{
+	public String createSnapShot(String inCatalogId, boolean wholecluster) {
 		Lock lock = null;
-		try
-		{
+		try {
 			log.info("Creating snapshot. Locking table");
 			lock = getLockManager(inCatalogId).lock("snapshot", "elasticNodeManager");
 			return createSnapShot(inCatalogId, lock, wholecluster);
-		}
-		finally
-		{
+		} finally {
 			getLockManager(inCatalogId).release(lock);
 		}
 	}
 
-	public String createSnapShot(String inCatalogId, Lock inLock, boolean wholecluster)
-	{
+	public String createSnapShot(String inCatalogId, Lock inLock, boolean wholecluster) {
 		String indexid = toId(inCatalogId);
-		String path = getLocalNode().getSetting("path.repo") + "/" + indexid; //Store it someplace unique so we can be isolated?
+		String path = getLocalNode().getSetting("path.repo") + "/" + indexid; // Store it someplace unique so we can be
+																				// isolated?
 
-		//log.info("Deleted nodeid=" + id + " records database " + getSearchType() );
+		// log.info("Deleted nodeid=" + id + " records database " + getSearchType() );
 
 		Settings settings = Settings.builder().put("location", path).build();
-		PutRepositoryRequestBuilder putRepo = new PutRepositoryRequestBuilder(getClient().admin().cluster(), PutRepositoryAction.INSTANCE);
-		putRepo.setName(indexid).setType("fs").setSettings(settings) //With Unique location saved for each catalog
+		PutRepositoryRequestBuilder putRepo = new PutRepositoryRequestBuilder(getClient().admin().cluster(),
+				PutRepositoryAction.INSTANCE);
+		putRepo.setName(indexid).setType("fs").setSettings(settings) // With Unique location saved for each catalog
 				.execute().actionGet();
 
-		//	    PutRepositoryRequestBuilder putRepo = 
-		//	    		new PutRepositoryRequestBuilder(getClient().admin().cluster());
-		//	    putRepo.setName(indexid)
-		//	            .setType("fs")
-		//	            .setSettings(settings) //With Unique location saved for each catalog
-		//	            .execute().actionGet();
+		// PutRepositoryRequestBuilder putRepo =
+		// new PutRepositoryRequestBuilder(getClient().admin().cluster());
+		// putRepo.setName(indexid)
+		// .setType("fs")
+		// .setSettings(settings) //With Unique location saved for each catalog
+		// .execute().actionGet();
 
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-		//  CreateSnapshotRequestBuilder(elasticSearchClient, CreateSnapshotAction.INSTANCE)
+		// CreateSnapshotRequestBuilder(elasticSearchClient,
+		// CreateSnapshotAction.INSTANCE)
 
-		CreateSnapshotRequestBuilder builder = new CreateSnapshotRequestBuilder(getClient(), CreateSnapshotAction.INSTANCE);
+		CreateSnapshotRequestBuilder builder = new CreateSnapshotRequestBuilder(getClient(),
+				CreateSnapshotAction.INSTANCE);
 		String snapshotid = format.format(new Date());
-		if (!wholecluster)
-		{
+		if (!wholecluster) {
 			builder.setRepository(indexid).setIndices(indexid).setWaitForCompletion(true).setSnapshot(snapshotid);
-		}
-		else
-		{
+		} else {
 			builder.setRepository(indexid).setWaitForCompletion(true).setSnapshot(snapshotid + "-full");
 		}
 		builder.execute().actionGet();
@@ -392,69 +334,58 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 		return snapshotid;
 	}
 
-	public String createDailySnapShot(String inCatalogId)
-	{
+	public String createDailySnapShot(String inCatalogId) {
 		return createDailySnapShot(inCatalogId, false);
 	}
 
-	public String createDailySnapShot(String inCatalogId, boolean wholedatabase)
-	{
+	public String createDailySnapShot(String inCatalogId, boolean wholedatabase) {
 		Lock lock = null;
 
-		try
-		{
+		try {
 			lock = getLockManager(inCatalogId).lock("snapshot", "elasticNodeManager");
-			if( lock != null)
-			{
+			if (lock != null) {
 				List list = listSnapShots(inCatalogId);
-				if (list.size() > 0)
-				{
+				if (list.size() > 0) {
 					SnapshotInfo recent = (SnapshotInfo) list.iterator().next();
 					Date date = new Date(recent.startTime());
 					Calendar yesterday = new GregorianCalendar();
-					
-					MediaArchive archive = (MediaArchive) getSearcherManager().getModuleManager().getBean(inCatalogId, "mediaArchive");
+
+					MediaArchive archive = (MediaArchive) getSearcherManager().getModuleManager().getBean(inCatalogId,
+							"mediaArchive");
 					int hours = 24;
-					String setting  = archive.getCatalogSettingValue("snapshot_max_period_hours");
-					if( setting != null )
-					{
+					String setting = archive.getCatalogSettingValue("snapshot_max_period_hours");
+					if (setting != null) {
 						hours = Integer.parseInt(setting);
 					}
-					yesterday.add(Calendar.HOUR_OF_DAY, 0 - hours); 
-					yesterday.add(Calendar.MINUTE,15); //has it been 23 hours and 45 minutes
-					if (date.after(yesterday.getTime()))
-					{
+					yesterday.add(Calendar.HOUR_OF_DAY, 0 - hours);
+					yesterday.add(Calendar.MINUTE, 15); // has it been 23 hours and 45 minutes
+					if (date.after(yesterday.getTime())) {
 						return String.valueOf(recent.startTime());
 					}
 				}
 				return createSnapShot(inCatalogId, lock, wholedatabase);
 			}
-		}
-		catch (Throwable ex)
-		{
+		} catch (Throwable ex) {
 			throw new OpenEditException(ex);
-		}
-		finally
-		{
+		} finally {
 			getLockManager(inCatalogId).release(lock);
 		}
 		return null;
 	}
 
-	public List listSnapShots(String inCatalogId)
-	{
+	public List listSnapShots(String inCatalogId) {
 		String indexid = toId(inCatalogId);
 
 		String path = getLocalNode().getSetting("path.repo") + "/" + indexid;
 
-		if (!new File(path).exists())
-		{
+		if (!new File(path).exists()) {
 			return Collections.emptyList();
 		}
 		Settings settings = Settings.builder().put("location", path).build();
 
-		PutRepositoryRequestBuilder putRepo = new PutRepositoryRequestBuilder(getClient().admin().cluster(), PutRepositoryAction.INSTANCE);
-		putRepo.setName(indexid).setType("fs").setSettings(settings) //With Unique location saved for each catalog
+		PutRepositoryRequestBuilder putRepo = new PutRepositoryRequestBuilder(getClient().admin().cluster(),
+				PutRepositoryAction.INSTANCE);
+		putRepo.setName(indexid).setType("fs").setSettings(settings) // With Unique location saved for each catalog
 				.execute().actionGet();
 
 		GetSnapshotsRequestBuilder builder = new GetSnapshotsRequestBuilder(getClient(), GetSnapshotsAction.INSTANCE);
@@ -463,34 +394,28 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 		GetSnapshotsResponse getSnapshotsResponse = builder.execute().actionGet();
 		List results = new ArrayList(getSnapshotsResponse.getSnapshots());
 
-		Collections.sort(results, new Comparator<SnapshotInfo>()
-		{
+		Collections.sort(results, new Comparator<SnapshotInfo>() {
 			@Override
-			public int compare(SnapshotInfo inO1, SnapshotInfo inO2)
-			{
-				return String.valueOf(inO1.startTime()).compareTo( String.valueOf(inO2.startTime()));
+			public int compare(SnapshotInfo inO1, SnapshotInfo inO2) {
+				return String.valueOf(inO1.startTime()).compareTo(String.valueOf(inO2.startTime()));
 			}
 		});
 		Collections.reverse(results);
 		return results;
 	}
 
-	public String restoreLatest(String inCatalogId, String lastrestored)
-	{
+	public String restoreLatest(String inCatalogId, String lastrestored) {
 
 		List snapshots = listSnapShots(inCatalogId);
-		if (snapshots.size() == 0)
-		{
+		if (snapshots.size() == 0) {
 			return null;
 		}
 		SnapshotInfo info = (SnapshotInfo) snapshots.get(0);
-		if (lastrestored == null)
-		{
+		if (lastrestored == null) {
 			lastrestored = "";
 		}
 
-		if (lastrestored.equals(info.toString()))
-		{
+		if (lastrestored.equals(info.toString())) {
 			return null;
 		}
 
@@ -500,8 +425,7 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 
 	}
 
-	public void restoreSnapShot(String inCatalogId, String inSnapShotId)
-	{
+	public void restoreSnapShot(String inCatalogId, String inSnapShotId) {
 //		String indexid = toId(inCatalogId);
 //		listSnapShots(indexid);
 //
@@ -581,22 +505,17 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 //		}
 	}
 
-	
-
-	public void addMappingError(String inSearchType, String inMessage)
-	{
+	public void addMappingError(String inSearchType, String inMessage) {
 		MappingError error = new MappingError();
 		error.setError(inMessage);
 		error.setSearchType(inSearchType);
-		if (inMessage.contains("Mapper for ["))
-		{
+		if (inMessage.contains("Mapper for [")) {
 			String guessdetail = inMessage.substring("Mapper for [".length(), inMessage.length());
 			guessdetail = guessdetail.substring(0, guessdetail.indexOf("]"));
 			error.setDetail(guessdetail);
 		}
 
-		if (inMessage.contains("cannot be changed"))
-		{
+		if (inMessage.contains("cannot be changed")) {
 			String guessdetail = inMessage.substring("mapper [".length(), inMessage.length());
 			guessdetail = guessdetail.substring(0, guessdetail.indexOf("]"));
 			error.setDetail(guessdetail);
@@ -606,15 +525,12 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 
 	}
 
-	public boolean hasMappingErrors()
-	{
+	public boolean hasMappingErrors() {
 		return !getMappingErrors().isEmpty();
 	}
 
-	public boolean containsCatalog(String inCatalogId)
-	{
-		if (getConnectedCatalogIds().containsKey(inCatalogId))
-		{
+	public boolean containsCatalog(String inCatalogId) {
+		if (getConnectedCatalogIds().containsKey(inCatalogId)) {
 			return true;
 		}
 		String index = toId(inCatalogId);
@@ -623,53 +539,54 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 		return res.isExists();
 	}
 
-	public boolean connectCatalog(String inCatalogId)
-	{
-		if (!getConnectedCatalogIds().containsKey(inCatalogId))
-		{
-			synchronized (this)
-			{
-				if (!getConnectedCatalogIds().containsKey(inCatalogId))
-				{
+	public boolean connectCatalog(String inCatalogId) {
+		if (!getConnectedCatalogIds().containsKey(inCatalogId)) {
+			synchronized (this) {
+				if (!getConnectedCatalogIds().containsKey(inCatalogId)) {
 					String alias = toId(inCatalogId);
 
 					AdminClient admin = getClient().admin();
-					ClusterHealthResponse health = admin.cluster().prepareHealth().setWaitForYellowStatus().execute().actionGet();
+					ClusterHealthResponse health = admin.cluster().prepareHealth().setWaitForYellowStatus().execute()
+							.actionGet();
 
-					if (health.isTimedOut())
-					{
+					if (health.isTimedOut()) {
 						throw new OpenEditException("Could not get yellow status for " + alias);
 					}
-					String index = null;//getIndexNameFromAliasName(alias);//see if we already have an index
-					//see if an actual index exists
+					String index = null;// getIndexNameFromAliasName(alias);//see if we already have an index
+					// see if an actual index exists
 
-					if (index == null)
-					{
+					if (index == null) {
 						index = alias + "-0";
 					}
-					IndicesExistsRequest existsreq = Requests.indicesExistsRequest(index); //see if 
+					IndicesExistsRequest existsreq = Requests.indicesExistsRequest(index); // see if
 					IndicesExistsResponse res = admin.indices().exists(existsreq).actionGet();
-					//			if (res.isExists() ){
-					//				index = alias;
-					//			}
+					// if (res.isExists() ){
+					// index = alias;
+					// }
 
 					boolean createdIndex = prepareIndex(health, index);
-					if (createdIndex)
-					{
-						if (!res.isExists())
-						{
-							admin.indices().prepareAliases().addAlias(index, alias).execute().actionGet();//This sets up an alias that the app uses so we can flip later.
+					if (createdIndex) {
+						if (!res.isExists()) {
+							admin.indices().prepareAliases().addAlias(index, alias).execute().actionGet();// This sets
+																											// up an
+																											// alias
+																											// that the
+																											// app uses
+																											// so we can
+																											// flip
+																											// later.
 						}
 					}
 					getConnectedCatalogIds().put(inCatalogId, index);
-					//			PropertyDetailsArchive archive = getSearcherManager().getPropertyDetailsArchive(inCatalogId);
-					//			List sorted = archive.listSearchTypes();
-					//			for (Iterator iterator = sorted.iterator(); iterator.hasNext();)
-					//			{
-					//				String type = (String) iterator.next();
-					//				Searcher searcher = getSearcherManager().getSearcher(inCatalogId, type);
-					//				searcher.initialize();	
-					//			}
+					// PropertyDetailsArchive archive =
+					// getSearcherManager().getPropertyDetailsArchive(inCatalogId);
+					// List sorted = archive.listSearchTypes();
+					// for (Iterator iterator = sorted.iterator(); iterator.hasNext();)
+					// {
+					// String type = (String) iterator.next();
+					// Searcher searcher = getSearcherManager().getSearcher(inCatalogId, type);
+					// searcher.initialize();
+					// }
 
 					return true;
 				}
@@ -678,96 +595,81 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 		return true;
 	}
 
-	public boolean prepareIndex(String index)
-	{
+	public boolean prepareIndex(String index) {
 		return prepareIndex(null, index);
 	}
 
-	public boolean prepareIndex(ClusterHealthResponse health, String index)
-	{
+	public boolean prepareIndex(ClusterHealthResponse health, String index) {
 
 		AdminClient admin = getClient().admin();
 
 		IndicesExistsRequest existsreq = Requests.indicesExistsRequest(index);
 		IndicesExistsResponse res = admin.indices().exists(existsreq).actionGet();
 		boolean createdIndex = false;
-		if (!res.isExists())
-		{
+		if (!res.isExists()) {
 			InputStream in = null;
-			try
-			{
+			try {
 				Page yaml = getPageManager().getPage("/system/configuration/elasticindex.yaml");
 				in = yaml.getInputStream();
 				Builder settingsBuilder = Settings.builder().loadFromStream(yaml.getName(), in, true);
-				for (Iterator iterator = getLocalNode().getProperties().keySet().iterator(); iterator.hasNext();)
-				{
+				for (Iterator iterator = getLocalNode().getProperties().keySet().iterator(); iterator.hasNext();) {
 					String key = (String) iterator.next();
-					if (key.startsWith("index.")) //Legacy
+					if (key.startsWith("index.")) // Legacy
 					{
 						String val = getLocalNode().getSetting(key);
 						settingsBuilder.put(key, val);
 					}
 				}
 
-				CreateIndexResponse newindexres = admin.indices().prepareCreate(index).setSettings(settingsBuilder).execute().actionGet();
+				CreateIndexResponse newindexres = admin.indices().prepareCreate(index).setSettings(settingsBuilder)
+						.execute().actionGet();
 
 				/*
-				 * XContentBuilder settingsBuilder =
-				 * XContentFactory.jsonBuilder() .startObject()
-				 * .startObject("analysis") .startObject("analyzer")
+				 * XContentBuilder settingsBuilder = XContentFactory.jsonBuilder()
+				 * .startObject() .startObject("analysis") .startObject("analyzer")
 				 * .startObject("lowersnowball").field("tokenizer",
 				 * "standard").startArray("filter").value("standard").value(
-				 * "lowercase").value("stemfilter").endArray() .endObject()
-				 * .endObject() .startObject("analyzer")
-				 * .startObject("tags").field("type",
+				 * "lowercase").value("stemfilter").endArray() .endObject() .endObject()
+				 * .startObject("analyzer") .startObject("tags").field("type",
 				 * "custom").field("tokenizer",
-				 * "keyword").startArray("filter").value("lowercase").endArray()
-				 * .endObject() .endObject() .startObject("filter")
+				 * "keyword").startArray("filter").value("lowercase").endArray() .endObject()
+				 * .endObject() .startObject("filter")
 				 * .startObject("stemfilter").field("type","snowball").field(
 				 * "language","English") .endObject() .endObject() .endObject();
 				 */
 
-				if (newindexres.isAcknowledged())
-				{
+				if (newindexres.isAcknowledged()) {
 					log.info("index created " + index);
 				}
 				createdIndex = true;
-			}
-			catch (RemoteTransportException exists)
-			{
+			} catch (RemoteTransportException exists) {
 				// silent error
 				log.debug("Index already exists " + index);
-			}
-			catch (Exception e)
-			{
-				if (e instanceof RuntimeException)
-				{
+			} catch (Exception e) {
+				if (e instanceof RuntimeException) {
 					throw (RuntimeException) e;
 				}
 				throw new OpenEditException(e);
-			}
-			finally
-			{
+			} finally {
 				FileUtils.safeClose(in);
 			}
-		}
-		else
-		{
+		} else {
 			RefreshRequest req = Requests.refreshRequest(index);
 			RefreshResponse rres = admin.indices().refresh(req).actionGet();
-			if (rres.getFailedShards() > 0)
-			{
+			if (rres.getFailedShards() > 0) {
 				log.error("Could not refresh shards");
 			}
-			//TODO: Make sure we are setting replicas and master nodes
-			//			if (health != null && health.getNumberOfNodes() > 1)
-			//			{
-			//				settingsBuilder.put(ElectMasterService.DISCOVERY_ZEN_MINIMUM_MASTER_NODES, "2");
-			//				settingsBuilder.put(ElectMasterService.DISCOVERY_ZEN_MINIMUM_MASTER_NODES, "2");
-			//			}
+			// TODO: Make sure we are setting replicas and master nodes
+			// if (health != null && health.getNumberOfNodes() > 1)
+			// {
+			// settingsBuilder.put(ElectMasterService.DISCOVERY_ZEN_MINIMUM_MASTER_NODES,
+			// "2");
+			// settingsBuilder.put(ElectMasterService.DISCOVERY_ZEN_MINIMUM_MASTER_NODES,
+			// "2");
+			// }
 		}
 
-		//Check the number of nodes
+		// Check the number of nodes
 
 		return createdIndex;
 	}
@@ -1200,47 +1102,39 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 //
 //	}
 
-	private Listener createLoggingBulkProcessorListener()
-	{
-		return new BulkProcessor.Listener()
-		{
+	private Listener createLoggingBulkProcessorListener() {
+		return new BulkProcessor.Listener() {
 			@Override
-			public void beforeBulk(long executionId, BulkRequest request)
-			{
+			public void beforeBulk(long executionId, BulkRequest request) {
 			}
 
 			@Override
-			public void afterBulk(long executionId, BulkRequest request, BulkResponse response)
-			{
+			public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
 			}
 
 			@Override
-			public void afterBulk(long executionId, BulkRequest request, Throwable failure)
-			{
+			public void afterBulk(long executionId, BulkRequest request, Throwable failure) {
 			}
 		};
 	}
 
-	public void removeMappingError(String inSearchType)
-	{
+	public void removeMappingError(String inSearchType) {
 		// TODO Auto-generated method stub
 		getMappingErrors().remove(inSearchType);
 	}
 
 	@Override
-	public void deleteCatalog(String inId)
-	{
-		AcknowledgedResponse delete = getClient().admin().indices().delete(new DeleteIndexRequest(toId(inId))).actionGet();
-		if (!delete.isAcknowledged())
-		{
+	public void deleteCatalog(String inId) {
+		AcknowledgedResponse delete = getClient().admin().indices().delete(new DeleteIndexRequest(toId(inId)))
+				.actionGet();
+		if (!delete.isAcknowledged()) {
 			log.error("Index wasn't deleted");
 		}
 
 	}
 
 	@Override
-	public String createSnapShot(String inCatalogId)
-	{
+	public String createSnapShot(String inCatalogId) {
 		return createSnapShot(inCatalogId, false);
 	}
 
@@ -1251,34 +1145,26 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 //
 //	}
 
-	public void clear()
-	{
+	public void clear() {
 		getClient().admin().indices().clearCache(new ClearIndicesCacheRequest()).actionGet();
 	}
 
-	public BulkProcessor getBulkProcessor()
-	{
+	public BulkProcessor getBulkProcessor() {
 
-		if (fieldBulkProcessor == null)
-		{
+		if (fieldBulkProcessor == null) {
 
-			fieldBulkProcessor = BulkProcessor.builder(getClient(), new BulkProcessor.Listener()
-			{
+			fieldBulkProcessor = BulkProcessor.builder(getClient(), new BulkProcessor.Listener() {
 				@Override
-				public void beforeBulk(long executionId, BulkRequest request)
-				{
+				public void beforeBulk(long executionId, BulkRequest request) {
 
 				}
 
 				@Override
-				public void afterBulk(long executionId, BulkRequest request, BulkResponse response)
-				{
-					for (int i = 0; i < response.getItems().length; i++)
-					{
+				public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
+					for (int i = 0; i < response.getItems().length; i++) {
 						// request.getFromContext(key)
 						BulkItemResponse res = response.getItems()[i];
-						if (res.isFailed())
-						{
+						if (res.isFailed()) {
 							log.info(res.getFailureMessage());
 							fieldBulkErrors.add(res.getFailureMessage());
 
@@ -1286,16 +1172,17 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 						// Data toupdate = toversion.get(res.getId());
 
 					}
-					//	request.refresh(true);
+					// request.refresh(true);
 				}
 
 				@Override
-				public void afterBulk(long executionId, BulkRequest request, Throwable failure)
-				{
+				public void afterBulk(long executionId, BulkRequest request, Throwable failure) {
 					log.info(failure);
 					fieldBulkErrors.add(failure);
 				}
-			}).setBulkActions(-1).setBulkSize(new ByteSizeValue(10, ByteSizeUnit.MB)).setFlushInterval(TimeValue.timeValueMinutes(4)).setConcurrentRequests(1).setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 10)).build();
+			}).setBulkActions(-1).setBulkSize(new ByteSizeValue(10, ByteSizeUnit.MB))
+					.setFlushInterval(TimeValue.timeValueMinutes(4)).setConcurrentRequests(1)
+					.setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 10)).build();
 
 		}
 
@@ -1303,20 +1190,16 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 
 	}
 
-	public NodeStats getNodeStats()
-	{
+	public NodeStats getNodeStats() {
 		NumberFormat nf = NumberFormat.getNumberInstance();
-		for (Path root : FileSystems.getDefault().getRootDirectories())
-		{
+		for (Path root : FileSystems.getDefault().getRootDirectories()) {
 
 			// System.out.print(root + ": ");
-			try
-			{
+			try {
 				FileStore store = Files.getFileStore(root);
-				// System.out.println("available=" + nf.format(store.getUsableSpace()) + ", total=" + nf.format(store.getTotalSpace()));
-			}
-			catch (IOException e)
-			{
+				// System.out.println("available=" + nf.format(store.getUsableSpace()) + ",
+				// total=" + nf.format(store.getTotalSpace()));
+			} catch (IOException e) {
 				log.error("error querying space: " + e.toString());
 			}
 		}
@@ -1324,14 +1207,12 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 		NodesStatsResponse response = getClient().admin().cluster().prepareNodesStats().get();
 
 		ClusterHealthResponse healths = getClient().admin().cluster().prepareHealth().get();
-		for (Iterator iterator = response.getNodesMap().keySet().iterator(); iterator.hasNext();)
-		{
+		for (Iterator iterator = response.getNodesMap().keySet().iterator(); iterator.hasNext();) {
 			String key = (String) iterator.next();
 			NodeStats stats = response.getNodesMap().get(key);
 			String id = stats.getNode().getId();
 			String name = stats.getNode().getName();
-			if (getLocalNodeId().equals(name))
-			{
+			if (getLocalNodeId().equals(name)) {
 				stats.getJvm().getMem().getHeapMax();
 				stats.getJvm().getMem().getHeapUsed();
 				stats.getJvm().getMem().getHeapUsedPercent();
@@ -1341,46 +1222,39 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 				stats.getFs().getTotal().getAvailable();
 				stats.getFs().getTotal().getTotal();
 				stats.getFs().getTotal().getFree();
-				//log.info(response);
+				// log.info(response);
 
 				return stats;
 			}
 		}
 		// NodeStats stats = response.getNodesMap().get(getLocalNodeId());
 
-		//		 stats.getJvm().getMem().getHeapCommitted();
+		// stats.getJvm().getMem().getHeapCommitted();
 		return null;
 	}
 
-	public String getClusterHealth()
-	{
+	public String getClusterHealth() {
 		String healthstatus = null;
 
-		try
-		{
+		try {
 			ClusterHealthResponse healths = getClient().admin().cluster().prepareHealth().get();
 			healthstatus = healths.getStatus().toString();
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return healthstatus;
 	}
 
-	public Collection getRemoteEditClusters(String inCatalog)
-	{
-		//Not cached
+	public Collection getRemoteEditClusters(String inCatalog) {
+		// Not cached
 		Collection nodes = getSearcherManager().getSearcher(inCatalog, "editingcluster").getAllHits();
 		Collection others = new ArrayList();
 
-		//TODO cache this
-		for (Iterator iterator = nodes.iterator(); iterator.hasNext();)
-		{
+		// TODO cache this
+		for (Iterator iterator = nodes.iterator(); iterator.hasNext();) {
 			Data node = (Data) iterator.next();
 			String clusterid = node.get("clustername");
-			if (!clusterid.equals(getLocalClusterId()))
-			{
+			if (!clusterid.equals(getLocalClusterId())) {
 				others.add(node);
 			}
 		}
@@ -1460,88 +1334,86 @@ public class ElasticNodeManager extends BaseNodeManager implements Shutdownable
 //		return hits;
 //	}
 
-	public void flushBulk()
-	{
+	public void flushBulk() {
 
-		try
-		{
+		try {
 			getBulkProcessor().flush();
 			getBulkProcessor().awaitClose(5, TimeUnit.MINUTES);
-			if (fieldBulkErrors.size() > 0)
-			{
+			if (fieldBulkErrors.size() > 0) {
 
 				throw new OpenEditException("Error importing bulk data: " + fieldBulkErrors);
 			}
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			throw new OpenEditException(e);
-		}
-		finally
-		{
+		} finally {
 			fieldBulkErrors.clear();
 			fieldBulkProcessor = null;
 		}
 	}
 
 	@Override
-	public void connectoToDatabase()
-	{
-		try
-		{
+	public void connectoToDatabase() {
+		try {
 			connectCatalog("system");
-		}
-		catch( Throwable ex)
-		{
+		} catch (Throwable ex) {
 			log.error("Connection not ready yet", ex);
 		}
-			
 
 		boolean yellowok = false;
-		
-		do {
-			try
-			{
-				AdminClient admin = getClient().admin();
-				ClusterHealthResponse health = admin.cluster().prepareHealth().setWaitForYellowStatus().execute().actionGet();
 
-				if (health.isTimedOut())
-				{
-					log.info("Keep Waiting for yellow status" );
-				}
-				else
-				{
+		do {
+			try {
+				AdminClient admin = getClient().admin();
+				ClusterHealthResponse health = admin.cluster().prepareHealth().setWaitForYellowStatus().execute()
+						.actionGet();
+
+				if (health.isTimedOut()) {
+					log.info("Keep Waiting for yellow status");
+				} else {
 					yellowok = true;
 				}
 
+			} catch (Throwable ex) {
+				log.error("Trying to init system catalog", ex); // Should never happen
 			}
-			catch( Throwable ex)
-			{
-				log.error("Trying to init system catalog", ex); //Should never happen
-			}
-			
-			if( !yellowok )
-			{
-				try
-				{
+
+			if (!yellowok) {
+				try {
 					Thread.sleep(200);
-				}
-				catch (Exception ex)
-				{
-					//Ignore
+				} catch (Exception ex) {
+					// Ignore
 				}
 			}
-			
-		} while(!yellowok);
-		
+
+		} while (!yellowok);
+
 		log.info("Connected to system catalog");
-		
+
 	}
 
 	@Override
 	public boolean reindexInternal(String inCatalogId) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	public String getIndexNameFromAliasName(String aliasName) {
+		GetAliasesRequest request = new GetAliasesRequest(aliasName);
+		GetAliasesResponse getAliasesResponse = getClient().admin().indices().getAliases(request).actionGet();
+
+		ImmutableOpenMap<String, List<AliasMetadata>> aliasesMap = getAliasesResponse.getAliases();
+		for (Iterator iterator = aliasesMap.keysIt(); iterator.hasNext();) {
+			String indexid = (String) iterator.next();
+			List<AliasMetadata> metadata = aliasesMap.get(indexid);
+			for (Iterator iterator2 = metadata.iterator(); iterator2.hasNext();) {
+				AliasMetadata aliasMetadata = (AliasMetadata) iterator2.next();
+				if (aliasMetadata.alias().equals(aliasName)) {
+					return indexid;
+				}
+			}
+		}
+		return null;
+
 	}
 
 }

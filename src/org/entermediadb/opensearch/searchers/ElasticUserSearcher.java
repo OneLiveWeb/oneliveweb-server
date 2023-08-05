@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.openedit.Data;
 import org.openedit.OpenEditException;
 import org.openedit.data.PropertyDetails;
@@ -25,6 +24,7 @@ import org.openedit.users.User;
 import org.openedit.users.UserSearcher;
 import org.openedit.users.filesystem.XmlUserArchive;
 import org.openedit.util.StringEncryption;
+import org.opensearch.core.xcontent.XContentBuilder;
 
 /**
  *

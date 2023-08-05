@@ -2,7 +2,6 @@ package org.entermediadb.opensearch.categories;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -11,7 +10,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.elasticsearch.action.get.GetResponse;
 import org.entermediadb.asset.Category;
 import org.entermediadb.asset.xmldb.CategorySearcher;
 import org.entermediadb.asset.xmldb.XmlCategoryArchive;
@@ -23,6 +21,7 @@ import org.openedit.data.PropertyDetails;
 import org.openedit.hittracker.HitTracker;
 import org.openedit.users.User;
 import org.openedit.util.PathUtilities;
+import org.opensearch.action.get.GetResponse;
 
 public class ElasticCategorySearcher extends BaseElasticSearcher implements CategorySearcher//, Reloadable
 {
@@ -372,7 +371,7 @@ public class ElasticCategorySearcher extends BaseElasticSearcher implements Cate
 
 	protected Category searchCategory(String inValue)
 	{
-		GetResponse response = getClient().prepareGet(toId(getCatalogId()), getSearchType(), inValue).execute().actionGet();
+		GetResponse response = getClient().prepareGet(toId(getCatalogId()),  inValue).execute().actionGet();
 		if( response.isExists() )
 		{
 			Map source = response.getSource();
