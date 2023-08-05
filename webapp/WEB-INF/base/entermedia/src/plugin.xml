@@ -1400,7 +1400,7 @@
 	
 	
 	<!-- Elastic Search -->
-	<bean id="elasticNodeManager" class="org.entermediadb.opensearch.ElasticNodeManager">
+	<bean id="opensearchNodeManager" class="org.entermediadb.opensearch.ElasticNodeManager">
 		<property name="pageManager">
 			<ref bean="pageManager" />
 		</property>
@@ -1416,24 +1416,24 @@
 	</bean>
 
 <!-- Remove this one day -->
-	<bean id="elasticTransientSearcher"	class="org.entermediadb.elasticsearch.searchers.BaseElasticSearcher"	scope="prototype">
+	<bean id="opensearchTransientSearcher"	class="org.entermediadb.opensearch.searchers.BaseElasticSearcher"	scope="prototype">
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
 		</property>
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
 		</property>		
 	</bean>
 
-	<bean id="elasticDataSearcher"	class="org.entermediadb.elasticsearch.searchers.BaseElasticSearcher"	scope="prototype">
+	<bean id="opensearchDataSearcher"	class="org.entermediadb.opensearch.searchers.BaseElasticSearcher"	scope="prototype">
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
 		</property>
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
@@ -1442,10 +1442,10 @@
 
 
 	<!-- Use beans.xml to enable this one -->
-	<bean id="elasticAssetSearcher" class="org.entermediadb.asset.search.BaseAssetSearcher"
+	<bean id="opensearchAssetSearcher" class="org.entermediadb.asset.search.BaseAssetSearcher"
 		scope="prototype">
 		<property name="dataConnector">
-			<ref bean="elasticAssetDataConnector" />
+			<ref bean="opensearchAssetDataConnector" />
 		</property>
 		<property name="eventManager">
 			<ref bean="eventManager" />
@@ -1459,8 +1459,8 @@
 		
 	</bean>
 
-	<bean id="elasticAssetDataConnector"
-		class="org.entermediadb.elasticsearch.searchers.ElasticAssetDataConnector"
+	<bean id="opensearchAssetDataConnector"
+		class="org.entermediadb.opensearch.searchers.ElasticAssetDataConnector"
 		scope="prototype">
 		<property name="pageManager">
 			<ref bean="pageManager" />
@@ -1471,8 +1471,8 @@
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
 		</property>
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="assetSecurityArchive">
 			<ref bean="assetSecurityDataArchive" />
@@ -1485,14 +1485,14 @@
 		</property>
 	</bean>
 
-	<bean id="elasticUserSearcher"
-		class="org.entermediadb.elasticsearch.searchers.ElasticUserSearcher"
+	<bean id="opensearchUserSearcher"
+		class="org.entermediadb.opensearch.searchers.ElasticUserSearcher"
 		scope="prototype"
 		>
 		<property name="newDataName"><value>baseUser</value></property>
 
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 			
 		<property name="searcherManager">
@@ -1512,13 +1512,13 @@
 	</bean>	
 	<bean id="baseGroup" class="org.openedit.users.BaseGroup"	scope="prototype" >
 	</bean>	
-	<bean id="elasticGroupSearcher"
-		class="org.entermediadb.elasticsearch.searchers.ElasticGroupSearcher"
+	<bean id="opensearchGroupSearcher"
+		class="org.entermediadb.opensearch.searchers.ElasticGroupSearcher"
 		scope="prototype"
 		>
 		<property name="newDataName"><value>baseGroup</value></property>
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
@@ -1532,9 +1532,9 @@
 		</property>
 	</bean>
 
-	<bean id="elasticLockSearcher" class="org.entermediadb.elasticsearch.searchers.LockSearcher" scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+	<bean id="opensearchLockSearcher" class="org.entermediadb.opensearch.searchers.LockSearcher" scope="prototype">
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1547,23 +1547,23 @@
 		<property name="clearIndexOnStart"><value>true</value></property>
 		
 	</bean>
-	<bean id="elasticLockManager" class="org.entermediadb.asset.cluster.ClusterLockManager" scope="prototype">
+	<bean id="opensearchLockManager" class="org.entermediadb.asset.cluster.ClusterLockManager" scope="prototype">
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
 		</property>
 		<property name="nodeManager">
-			<ref bean="elasticNodeManager" />
+			<ref bean="opensearchNodeManager" />
 		</property>
 	</bean>
 	
-	<bean id="elasticUserProfileSearcher"
-		class="org.entermediadb.elasticsearch.searchers.ElasticUserProfileSearcher"
+	<bean id="opensearchUserProfileSearcher"
+		class="org.entermediadb.opensearch.searchers.ElasticUserProfileSearcher"
 		scope="prototype"
 		>
 		<property name="newDataName"><value>userProfile</value></property>
 
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 			
 		<property name="searcherManager">
@@ -1580,7 +1580,7 @@
 		<property name="userManager"><ref bean="userManager"/></property>
 	</bean>
 	
-    <bean id="elasticXmlUserProfileSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticXmlFileSearcher" scope="prototype">
+    <bean id="opensearchXmlUserProfileSearcher" class="org.entermediadb.opensearch.searchers.ElasticXmlFileSearcher" scope="prototype">
 		<property name="pageManager">
 			<ref bean="pageManager" />
 		</property>
@@ -1590,8 +1590,8 @@
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
 		</property>
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
@@ -1604,9 +1604,9 @@
 		</property>
 	</bean>
 	
-	<bean id="elasticUserProfileSearcher" class="org.entermediadb.elasticsearch.searchers.BaseElasticSearcher" scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+	<bean id="opensearchUserProfileSearcher" class="org.entermediadb.opensearch.searchers.BaseElasticSearcher" scope="prototype">
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1620,7 +1620,7 @@
 		</property>
 	</bean>
 	
-	<bean id="elasticXmlOrderItemSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticXmlFileSearcher" scope="prototype">
+	<bean id="opensearchXmlOrderItemSearcher" class="org.entermediadb.opensearch.searchers.ElasticXmlFileSearcher" scope="prototype">
 		<property name="pageManager">
 			<ref bean="pageManager" />
 		</property>
@@ -1630,8 +1630,8 @@
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
 		</property>
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
@@ -1640,9 +1640,9 @@
 		<property name="prefix"><value>assets</value></property>
 	</bean>
 
-	<bean id="elasticOrderItemSearcher" class="org.entermediadb.elasticsearch.searchers.BaseElasticSearcher" scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+	<bean id="opensearchOrderItemSearcher" class="org.entermediadb.opensearch.searchers.BaseElasticSearcher" scope="prototype">
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1653,30 +1653,30 @@
 	</bean>
 
 
-	<bean id="elasticListSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticListSearcher" scope="prototype">
+	<bean id="opensearchListSearcher" class="org.entermediadb.opensearch.searchers.OpensearchListSearcher" scope="prototype">
 		<property name="xmlSearcher">
 			<ref bean="xmlSearcher" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
 		</property>
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
 		</property>
 	</bean>
 
-	<bean id="elasticFolderSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticListSearcher" scope="prototype">
+	<bean id="opensearchFolderSearcher" class="org.entermediadb.opensearch.searchers.OpensearchListSearcher" scope="prototype">
 		<property name="xmlSearcher">
 			<ref bean="xmlFolderSearcher" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
 		</property>
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
@@ -1684,9 +1684,9 @@
 	</bean>
 
 
-<bean id="elasticCategorySearcher" class="org.entermediadb.elasticsearch.categories.ElasticCategorySearcher" scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+<bean id="opensearchCategorySearcher" class="org.entermediadb.opensearch.categories.ElasticCategorySearcher" scope="prototype">
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1694,7 +1694,7 @@
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
 		</property>
-		<property name="newDataName"><value>elasticCategory</value></property>
+		<property name="newDataName"><value>opensearchCategory</value></property>
 		<property name="checkVersions"><value>false</value></property>
 		<property name="cacheManager">
 			<ref bean="timedCacheManager" />
@@ -1702,10 +1702,10 @@
 		
 	</bean>
 
-	<bean id="elasticCategory" class="org.entermediadb.elasticsearch.categories.ElasticCategory" scope="prototype" >
+	<bean id="opensearchCategory" class="org.entermediadb.opensearch.categories.ElasticCategory" scope="prototype" >
 	</bean>	
 	
-	<bean id="elasticCategoryArchive" class="org.entermediadb.elasticsearch.categories.ElasticCategoryArchive"
+	<bean id="opensearchCategoryArchive" class="org.entermediadb.opensearch.categories.ElasticCategoryArchive"
 		scope="prototype">
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1713,9 +1713,9 @@
 		<property name="searcherManager"><ref bean="searcherManager" /></property>
 	</bean>
 	
-	<bean id="elasticOrderSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticOrderSearcher" scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+	<bean id="opensearchOrderSearcher" class="org.entermediadb.opensearch.searchers.ElasticOrderSearcher" scope="prototype">
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1728,13 +1728,13 @@
     </bean>
 	
 	
-<bean id="elasticXmlOrderSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticXmlOrderSearcher" scope="prototype">
+<bean id="opensearchXmlOrderSearcher" class="org.entermediadb.opensearch.searchers.ElasticXmlOrderSearcher" scope="prototype">
 		<property name="pageManager">
 			<ref bean="pageManager" />
 		</property>
 
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1748,9 +1748,9 @@
 </bean>
 
 
-	<bean id="assetAutoCompleteElasticSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticAutoCompleteSearcher" scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+	<bean id="assetAutoCompleteElasticSearcher" class="org.entermediadb.opensearch.searchers.ElasticAutoCompleteSearcher" scope="prototype">
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1762,9 +1762,9 @@
 		<property name="checkVersions"><value>false</value></property>
 	</bean>
 
-	<bean id="elasticAutoCompleteSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticAutoCompleteSearcher" scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+	<bean id="opensearchAutoCompleteSearcher" class="org.entermediadb.opensearch.searchers.ElasticAutoCompleteSearcher" scope="prototype">
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1776,9 +1776,9 @@
 		<property name="checkVersions"><value>false</value></property>
 	</bean>
 	
-	<bean id="elasticModuleSearchSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticModuleSearchSearcher" scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+	<bean id="opensearchModuleSearchSearcher" class="org.entermediadb.opensearch.searchers.ElasticModuleSearchSearcher" scope="prototype">
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1793,9 +1793,9 @@
 		<property name="refreshSaves"><value>false</value></property>
 		<property name="checkVersions"><value>false</value></property>
 	</bean>
-	<bean id="elasticModuleSearchKeywordSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticModuleSearchKeywordSearcher" scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+	<bean id="opensearchModuleSearchKeywordSearcher" class="org.entermediadb.opensearch.searchers.ElasticModuleSearchKeywordSearcher" scope="prototype">
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1811,11 +1811,11 @@
 		<property name="checkVersions"><value>false</value></property>
 	</bean>
 	
-	<bean id="elasticLogSearcher"
-		class="org.entermediadb.elasticsearch.searchers.ElasticLogSearcher"
+	<bean id="opensearchLogSearcher"
+		class="org.entermediadb.opensearch.searchers.ElasticLogSearcher"
 		scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -1829,7 +1829,7 @@
 		
 	</bean>
 	
-	  <bean id="elasticXmlFileSearcher" class="org.entermediadb.elasticsearch.searchers.ElasticXmlFileSearcher" scope="prototype">
+	  <bean id="opensearchXmlFileSearcher" class="org.entermediadb.opensearch.searchers.ElasticXmlFileSearcher" scope="prototype">
 		<property name="pageManager">
 			<ref bean="pageManager" />
 		</property>
@@ -1839,8 +1839,8 @@
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
 		</property>
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
@@ -2148,16 +2148,16 @@
 	
 	
  	
- 	<bean id="elasticRepository" class="org.entermediadb.elasticsearch.ElasticsearchRepository" >
+ 	<bean id="opensearchRepository" class="org.entermediadb.opensearch.ElasticsearchRepository" >
 		<property name="searcherManager">
 			<ref bean="searcherManager" />
 		</property>
 	
 	</bean>
  	
- 	<bean id="pageSearcher" class="org.entermediadb.elasticsearch.ElasticPageSearcher" >
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+ 	<bean id="pageSearcher" class="org.entermediadb.opensearch.ElasticPageSearcher" >
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -2167,9 +2167,9 @@
 		</property>
 	</bean>
 
-	<bean id="elasticLibraryCollectionSearcher" class="org.entermediadb.elasticsearch.searchers.BaseElasticSearcher" scope="prototype">
-		<property name="elasticNodeManager">
-			<ref bean="elasticNodeManager" />
+	<bean id="opensearchLibraryCollectionSearcher" class="org.entermediadb.opensearch.searchers.BaseElasticSearcher" scope="prototype">
+		<property name="opensearchNodeManager">
+			<ref bean="opensearchNodeManager" />
 		</property>
 		<property name="moduleManager">
 			<ref bean="moduleManager" />
@@ -2249,7 +2249,7 @@
 			<ref bean="searcherManager" />
 		</property>
 		<property name="nodeManager">
-			<ref bean="elasticNodeManager" />
+			<ref bean="opensearchNodeManager" />
 		</property>
 	</bean>
 	<bean id="SiteMonitorModule" class="org.entermediadb.sitemonitor.SiteMonitorModule">
@@ -2277,7 +2277,7 @@
 			<ref bean="searcherManager" />
 		</property>
 		<property name="nodeManager">
-			<ref bean="elasticNodeManager" />
+			<ref bean="opensearchNodeManager" />
 		</property>
 	</bean>
 
@@ -2286,7 +2286,7 @@
 			<ref bean="searcherManager" />
 		</property>
 		<property name="nodeManager">
-			<ref bean="elasticNodeManager" />
+			<ref bean="opensearchNodeManager" />
 		</property>
 	</bean>
 

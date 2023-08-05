@@ -18,7 +18,7 @@ import org.entermediadb.asset.util.CSVReader
 import org.entermediadb.asset.util.ImportFile
 import org.entermediadb.asset.util.Row
 import org.entermediadb.opensearch.ElasticNodeManager
-import org.entermediadb.opensearch.searchers.ElasticListSearcher
+import org.entermediadb.opensearch.searchers.OpensearchListSearcher
 import org.entermediadb.workspace.WorkspaceManager
 import org.openedit.Data
 import org.openedit.OpenEditException
@@ -574,7 +574,7 @@ public void importJson(Data site, MediaArchive mediaarchive, String searchtype, 
 
 
 	Searcher searcher = mediaarchive.getSearcher(searchtype);
-	if(searcher instanceof ElasticListSearcher){
+	if(searcher instanceof OpensearchListSearcher){
 		return;
 	}
 	ElasticNodeManager manager = (ElasticNodeManager)mediaarchive.getNodeManager();

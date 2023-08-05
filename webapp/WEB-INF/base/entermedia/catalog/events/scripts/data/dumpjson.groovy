@@ -6,7 +6,7 @@ import java.util.zip.ZipOutputStream
 import org.apache.commons.io.IOUtils;
 import org.entermediadb.asset.MediaArchive
 import org.entermediadb.opensearch.SearchHitData
-import org.entermediadb.opensearch.searchers.ElasticListSearcher
+import org.entermediadb.opensearch.searchers.OpensearchListSearcher
 import org.openedit.data.PropertyDetails
 import org.openedit.data.PropertyDetailsArchive
 import org.openedit.data.Searcher
@@ -34,7 +34,7 @@ public void init(){
 	searchtypes.each{
 		String searchtype = it;
 		Searcher searcher = searcherManager.getSearcher(catalogid, searchtype);
-		if(searcher instanceof ElasticListSearcher)
+		if(searcher instanceof OpensearchListSearcher)
 		{
 			return;
 		}

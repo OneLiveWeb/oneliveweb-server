@@ -11,7 +11,7 @@ import org.elasticsearch.cluster.metadata.MappingMetaData
 import org.elasticsearch.common.collect.ImmutableOpenMap
 import org.entermediadb.asset.MediaArchive
 import org.entermediadb.opensearch.SearchHitData
-import org.entermediadb.opensearch.searchers.ElasticListSearcher
+import org.entermediadb.opensearch.searchers.OpensearchListSearcher
 import org.openedit.Data;
 import org.openedit.data.NonExportable
 import org.openedit.data.PropertyDetails
@@ -158,7 +158,7 @@ public void exportDatabase(MediaArchive mediaarchive, List searchtypes, String r
 		String searchtype = it;
 	
 		Searcher searcher = searcherManager.getSearcher(catalogid, searchtype);
-		if(searcher instanceof ElasticListSearcher)
+		if(searcher instanceof OpensearchListSearcher)
 		{
 			return;
 		}

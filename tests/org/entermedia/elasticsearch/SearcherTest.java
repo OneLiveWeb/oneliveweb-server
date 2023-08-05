@@ -15,7 +15,7 @@ import org.elasticsearch.search.SearchHit;
 import org.entermediadb.asset.Asset;
 import org.entermediadb.asset.BaseEnterMediaTest;
 import org.entermediadb.asset.search.BaseAssetSearcher;
-import org.entermediadb.opensearch.searchers.ElasticListSearcher;
+import org.entermediadb.opensearch.searchers.OpensearchListSearcher;
 import org.entermediadb.opensearch.searchers.ElasticXmlFileSearcher;
 import org.openedit.Data;
 import org.openedit.data.Searcher;
@@ -127,7 +127,7 @@ public void testBasicRead() throws Exception
 	
 	public void testListSearcher()
 	{
-		ElasticListSearcher searcher = (ElasticListSearcher)getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "somerandom" );
+		OpensearchListSearcher searcher = (OpensearchListSearcher)getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "somerandom" );
 
 		assertTrue( searcher.getPropertyDetails().size() > 0 ); 	//Make sure webapp/entermedia/catalogs/testcatalog/_site.xconf has fallback 
 		

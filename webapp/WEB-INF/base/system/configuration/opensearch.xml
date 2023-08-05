@@ -1,0 +1,40 @@
+<beans>
+
+	<!-- Core types -->
+	<bean id="transientSearcher" bean="opensearchTransientSearcher" />
+	<bean id="listSearcher" bean="opensearchListSearcher" />
+	<bean id="folderSearcher" bean="opensearchFolderSearcher" />
+	<bean id="dataSearcher" bean="opensearchDataSearcher" />
+	<bean id="lockManager" bean="opensearchLockManager" />
+
+	<!-- Java implementations -->
+	<bean id="assetSearcher" bean="opensearchAssetSearcher" />
+	<bean id="lockSearcher" bean="opensearchLockSearcher" />
+	<bean id="userSearcher" bean="opensearchUserSearcher" />
+	<bean id="groupSearcher" bean="opensearchGroupSearcher" />
+	<bean id="userprofileSearcher" bean="opensearchUserProfileSearcher" />
+	<bean id="conversiontaskSearcher" bean="opensearchTransientSearcher" />
+	<bean id="categorySearcher" bean="opensearchCategorySearcher" />
+	<bean id="orderSearcher" bean="opensearchOrderSearcher" />
+	<bean id="orderhistorySearcher" bean="opensearchDataSearcher" />
+	<bean id="orderitemSearcher" bean="opensearchDataSearcher" />
+	<bean id="categoryArchive" bean="opensearchCategoryArchive" />
+	<bean id="librarycollectionSearcher" bean="opensearchLibraryCollectionSearcher" />
+	<bean id="modulesearchSearcher" bean="opensearchModuleSearchSearcher" />
+	<bean id="modulesearchkeywordSearcher" bean="opensearchModuleSearchKeywordSearcher" />
+
+
+	<!--  Little used -->
+	<bean id="uploadqueueSearcher" bean="opensearchDataSearcher" />
+	<bean id="emailSearcher" bean="opensearchDataSearcher" />
+	<bean id="uploadqueueSearcher" bean="opensearchDataSearcher" />
+	<bean id="assetAutoCompleteSearcher" bean="assetAutoCompleteElasticSearcher" />
+	<bean id="modulesearchAutoCompleteSearcher" bean="opensearchAutoCompleteSearcher" />
+	<bean id="dynamicLogSearcher" bean="opensearchLogSearcher" />
+
+	<bean id="nodeManager" bean="opensearchNodeManager" />
+
+<!--  deprecated AssetRelatedKeywordSearcher -->
+
+</beans>
+	    
