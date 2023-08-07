@@ -15,7 +15,7 @@ import org.entermediadb.asset.MediaArchive;
 import org.entermediadb.asset.upload.UploadRequest;
 import org.entermediadb.events.PathEventManager;
 import org.entermediadb.modules.update.Downloader;
-import org.entermediadb.opensearch.ElasticNodeManager;
+import org.entermediadb.opensearch.OpenNodeManager;
 import org.entermediadb.workspace.WorkspaceManager;
 import org.openedit.Data;
 import org.openedit.OpenEditException;

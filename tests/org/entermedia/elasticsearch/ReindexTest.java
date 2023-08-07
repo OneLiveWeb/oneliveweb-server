@@ -2,7 +2,7 @@ package org.entermedia.elasticsearch;
 
 import org.entermediadb.asset.BaseEnterMediaTest;
 import org.entermediadb.asset.search.BaseAssetSearcher;
-import org.entermediadb.opensearch.ElasticNodeManager;
+import org.entermediadb.opensearch.OpenNodeManager;
 import org.entermediadb.opensearch.searchers.ElasticAssetDataConnector;
 import org.openedit.Data;
 
@@ -18,7 +18,7 @@ public class ReindexTest extends BaseEnterMediaTest
 		
 		BaseAssetSearcher searcher = (BaseAssetSearcher)getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "asset" );
 		ElasticAssetDataConnector con = (ElasticAssetDataConnector) searcher.getDataConnector();
-		ElasticNodeManager manager = con.getElasticNodeManager();
+		OpenNodeManager manager = con.getElasticNodeManager();
 		
 		
 		

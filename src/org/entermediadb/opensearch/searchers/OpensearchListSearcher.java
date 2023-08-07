@@ -20,7 +20,7 @@ import org.openedit.xml.ElementData;
 import org.openedit.xml.XmlFile;
 import org.openedit.xml.XmlSearcher;
 
-public class OpensearchListSearcher extends BaseElasticSearcher implements Reloadable
+public class OpensearchListSearcher extends BaseOpenSearcher implements Reloadable
 {
 	protected Log log = LogFactory.getLog(OpensearchListSearcher.class);
 	protected DataArchive fieldDataArchive; //lazy loaded

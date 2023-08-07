@@ -1,8 +1,8 @@
 package org.entermediadb.opensearch;
 
-import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
+import org.entermediadb.opensearch.searchers.BaseOpenSearcher;
 
-public class ElasticPageSearcher extends BaseElasticSearcher {
+public class ElasticPageSearcher extends BaseOpenSearcher {
 
 	
 	

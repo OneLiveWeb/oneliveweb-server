@@ -38,7 +38,7 @@ import org.opensearch.action.search.ClearScrollRequest;
  */
 
 
-public class ElasticXmlFileSearcher extends BaseElasticSearcher
+public class ElasticXmlFileSearcher extends BaseOpenSearcher
 {
 	protected Log log = LogFactory.getLog(ElasticXmlFileSearcher.class);
 	protected XmlArchive fieldXmlArchive;

@@ -19,7 +19,7 @@ import org.opensearch.index.query.TermQueryBuilder;
 import org.opensearch.search.aggregations.AggregationBuilder;
 import org.opensearch.search.aggregations.AggregationBuilders;
 
-public class modulesearchAutoCompleteSearcher extends BaseElasticSearcher
+public class modulesearchAutoCompleteSearcher extends BaseOpenSearcher
 {
 	private static final Log log = LogFactory.getLog(modulesearchAutoCompleteSearcher.class);
 
@@ -32,7 +32,7 @@ public class modulesearchAutoCompleteSearcher extends BaseElasticSearcher
 		SearchRequestBuilder search = getClient().prepareSearch(toId(getCatalogId()));
 		search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
 		
-		search.setTypes(searchmodules);
+		//search.setTypes(searchmodules);
 
 		//TODO: Auto added from advancedfilter
 		AggregationBuilder b = AggregationBuilders.terms("keywords").field("keywords" + ".exact").size(100);

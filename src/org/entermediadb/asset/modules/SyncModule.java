@@ -9,7 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import org.entermediadb.asset.MediaArchive;
 import org.entermediadb.asset.pull.PullManager;
 import org.entermediadb.asset.push.PushManager;
-import org.entermediadb.opensearch.ElasticNodeManager;
+import org.entermediadb.opensearch.OpenNodeManager;
 import org.entermediadb.scripts.ScriptLogger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -249,7 +249,7 @@ public class SyncModule extends BaseMediaModule
 			{
 				throw new OpenEditException("lastpull required");
 			}
-			ElasticNodeManager manager = (ElasticNodeManager) archive.getNodeManager();
+			OpenNodeManager manager = (OpenNodeManager) archive.getNodeManager();
 			hits = manager.getEditedDocuments(archive.getCatalogId(), ago);
 		}
 		if (page != null)
@@ -292,7 +292,7 @@ public class SyncModule extends BaseMediaModule
 		MediaArchive archive = getMediaArchive(inReq);
 		String sessionid = inReq.getRequestParameter("hitssessionid");
 		String page = inReq.getRequestParameter("page");
-		ElasticNodeManager manager = (ElasticNodeManager) archive.getNodeManager();
+		OpenNodeManager manager = (OpenNodeManager) archive.getNodeManager();
 		HitTracker hits = null;
 		String lastpullago = inReq.getRequiredParameter("lastpullago"); //force them to pick a date
 		Date ago = DateStorageUtil.getStorageUtil().subtractFromNow(Long.parseLong(lastpullago));

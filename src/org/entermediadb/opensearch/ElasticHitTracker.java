@@ -9,13 +9,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-<<<<<<< HEAD
-import org.apache.lucene.queryparser.flexible.core.builders.QueryBuilder;
-=======
->>>>>>> branch 'master' of https://github.com/OneLiveWeb/oneliveweb-server.git
 import org.json.simple.parser.ParseException;
 import org.openedit.Data;
 import org.openedit.OpenEditException;
@@ -25,19 +22,6 @@ import org.openedit.data.SearcherManager;
 import org.openedit.hittracker.FilterNode;
 import org.openedit.hittracker.HitTracker;
 import org.openedit.hittracker.SearchQuery;
-<<<<<<< HEAD
-import org.opensearch.action.search.SearchRequestBuilder;
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.client.Client;
-import org.opensearch.client.opensearch._types.aggregations.Aggregation;
-import org.opensearch.client.opensearch.core.ClearScrollRequest;
-import org.opensearch.common.unit.TimeValue;
-import org.opensearch.index.query.BoolQueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.search.SearchHit;
-import org.opensearch.search.aggregations.Aggregations;
-import org.opensearch.search.aggregations.InternalMultiBucketAggregation.InternalBucket;
-=======
 import org.opensearch.action.search.ClearScrollRequest;
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchResponse;
@@ -49,24 +33,22 @@ import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.aggregations.Aggregation;
 import org.opensearch.search.aggregations.Aggregations;
-import org.opensearch.search.aggregations.InternalMultiBucketAggregation.InternalBucket;
+import org.opensearch.search.aggregations.bucket.adjacency.InternalAdjacencyMatrix.InternalBucket;
 import org.opensearch.search.aggregations.bucket.histogram.Histogram;
->>>>>>> branch 'master' of https://github.com/OneLiveWeb/oneliveweb-server.git
 import org.opensearch.search.aggregations.bucket.terms.Terms;
 import org.opensearch.search.aggregations.metrics.Avg;
 import org.opensearch.search.aggregations.metrics.InternalSum;
-import org.opensearch.search.aggregations.metrics.Sum;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.tdunning.math.stats.Histogram;
+
 
 public class ElasticHitTracker extends HitTracker
 {
 	private static final Log log = LogFactory.getLog(ElasticHitTracker.class);
 	protected SearchRequestBuilder fieldSearcheRequestBuilder;
 	protected Map fieldChunks;
-	protected int SCROLL_CACHE_TIME = 900000; //15 minutes
+	protected long SCROLL_CACHE_TIME = 15; //15 minutes
 	protected long fieldLastPullTime = -1;
 	protected String fieldLastScrollId;
 	protected Client fieldElasticClient;
@@ -222,7 +204,7 @@ public class ElasticHitTracker extends HitTracker
 						
 						if (isUseServerCursor())
 						{
-							getSearcheRequestBuilder().setScroll(new TimeValue(SCROLL_CACHE_TIME));
+							getSearcheRequestBuilder().setScroll(new TimeValue(SCROLL_CACHE_TIME, TimeUnit.MINUTES));
 						}
 						response = getSearcheRequestBuilder().execute().actionGet();
 						setLastScrollId(response.getScrollId());

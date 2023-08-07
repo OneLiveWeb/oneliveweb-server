@@ -18,7 +18,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.entermediadb.asset.MediaArchive;
 import org.entermediadb.net.HttpSharedConnection;
-import org.entermediadb.opensearch.ElasticNodeManager;
+import org.entermediadb.opensearch.OpenNodeManager;
 import org.entermediadb.opensearch.SearchHitData;
 import org.entermediadb.scripts.ScriptLogger;
 import org.json.simple.JSONArray;
@@ -231,7 +231,7 @@ public class DataPuller extends BasePuller implements CatalogEnabled
 				inLog.info(node.getName() + " imported " + totalcount);
 
 				//uploadChanges... 
-				ElasticNodeManager manager = (ElasticNodeManager) inArchive.getNodeManager();
+				OpenNodeManager manager = (OpenNodeManager) inArchive.getNodeManager();
 				HitTracker localchanges = manager.getEditedDocuments(getCatalogId(), pulldate);
 				
 				String remotemastereditid = node.get("clustername");
@@ -373,13 +373,13 @@ public class DataPuller extends BasePuller implements CatalogEnabled
 
 	protected Map buildLocalChanges(MediaArchive inArchive, Date sinceDate)
 	{
-		ElasticNodeManager manager = (ElasticNodeManager) inArchive.getNodeManager();
+		OpenNodeManager manager = (OpenNodeManager) inArchive.getNodeManager();
 		HitTracker hits = manager.getEditedDocuments(getCatalogId(), sinceDate);
 		return map(hits);
 	}
 	protected Map<String, SearchHitData> buildLocalChangesByIds(MediaArchive inArchive, Collection inArray)
 	{
-		ElasticNodeManager manager = (ElasticNodeManager) inArchive.getNodeManager();
+		OpenNodeManager manager = (OpenNodeManager) inArchive.getNodeManager();
 		Collection<String> ids = new ArrayList<String>();
 		for (Iterator iterator = inArray.iterator(); iterator.hasNext();)
 		{
@@ -519,7 +519,7 @@ public class DataPuller extends BasePuller implements CatalogEnabled
 		}
 		finally
 		{
-			ElasticNodeManager manager = (ElasticNodeManager) getNodeManager();
+			OpenNodeManager manager = (OpenNodeManager) getNodeManager();
 			manager.flushBulk();
 		}
 		for (Iterator iterator = searchers.iterator(); iterator.hasNext();)
@@ -534,7 +534,7 @@ public class DataPuller extends BasePuller implements CatalogEnabled
 
 	public JSONObject createJsonFromHits(MediaArchive archive, Date inSince, HitTracker hits)
 	{
-		ElasticNodeManager manager = (ElasticNodeManager) archive.getNodeManager();
+		OpenNodeManager manager = (OpenNodeManager) archive.getNodeManager();
 
 		JSONObject finaldata = new JSONObject();
 

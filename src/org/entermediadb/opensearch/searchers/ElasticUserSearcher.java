@@ -29,7 +29,7 @@ import org.opensearch.core.xcontent.XContentBuilder;
 /**
  *
  */
-public class ElasticUserSearcher extends BaseElasticSearcher implements UserSearcher
+public class ElasticUserSearcher extends BaseOpenSearcher implements UserSearcher
 {
 	private static final Log log = LogFactory.getLog(ElasticUserSearcher.class);
 	protected XmlUserArchive fieldXmlUserArchive;

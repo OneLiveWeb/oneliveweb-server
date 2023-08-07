@@ -3,7 +3,7 @@ package org.entermedia.elasticsearch.searchers;
 import org.entermediadb.asset.Asset;
 import org.entermediadb.asset.BaseEnterMediaTest;
 import org.entermediadb.asset.search.BaseAssetSearcher;
-import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
+import org.entermediadb.opensearch.searchers.BaseOpenSearcher;
 import org.junit.Test;
 import org.openedit.data.PropertyDetail;
 import org.openedit.hittracker.HitTracker;
@@ -16,7 +16,7 @@ public class ElasticLanguageTest extends BaseEnterMediaTest
 	{
 		
 		BaseAssetSearcher searcher = (BaseAssetSearcher) getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "asset");
-		BaseElasticSearcher ser = (BaseElasticSearcher) searcher.getDataConnector();
+		BaseOpenSearcher ser = (BaseOpenSearcher) searcher.getDataConnector();
 		ser.getElasticNodeManager().reindexInternal("entermedia/catalogs/testcatalog");
 		searcher.getSearcherManager().setShowSearchLogs("entermedia/catalogs/testcatalog", true);
 		PropertyDetail detail = searcher.getDetail("assettitle");

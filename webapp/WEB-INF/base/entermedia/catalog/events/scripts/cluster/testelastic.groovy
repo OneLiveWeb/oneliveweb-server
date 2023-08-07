@@ -2,13 +2,13 @@ package cluster
 
 import org.elasticsearch.search.SearchHit
 import org.entermediadb.asset.MediaArchive
-import org.entermediadb.opensearch.ElasticNodeManager
+import org.entermediadb.opensearch.OpenNodeManager
 import org.entermediadb.opensearch.SearchHitData
 import org.openedit.hittracker.HitTracker
 
 public void runit()
 {
-	ElasticNodeManager nodeManager = moduleManager.getBean("elasticNodeManager");
+	OpenNodeManager nodeManager = moduleManager.getBean("elasticNodeManager");
 	MediaArchive mediaArchive = context.getPageValue("mediaarchive");
 	
 	

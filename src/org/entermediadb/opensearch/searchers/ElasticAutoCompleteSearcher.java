@@ -8,7 +8,7 @@ import org.openedit.OpenEditException;
 import org.openedit.hittracker.HitTracker;
 import org.openedit.util.DateStorageUtil;
 
-public class ElasticAutoCompleteSearcher extends BaseElasticSearcher implements AutoCompleteSearcher
+public class ElasticAutoCompleteSearcher extends BaseOpenSearcher implements AutoCompleteSearcher
 {
 
 	

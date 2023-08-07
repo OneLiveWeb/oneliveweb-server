@@ -19,7 +19,7 @@ import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.index.query.TermQueryBuilder;
 
-public class ElasticModuleSearchKeywordSearcher extends BaseElasticSearcher
+public class ElasticModuleSearchKeywordSearcher extends BaseOpenSearcher
 {
 	private static final Log log = LogFactory.getLog(ElasticModuleSearchKeywordSearcher.class);
 
@@ -43,7 +43,7 @@ public class ElasticModuleSearchKeywordSearcher extends BaseElasticSearcher
 		SearchRequestBuilder search = getClient().prepareSearch(toId(getCatalogId()));
 		search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
 		
-		search.setTypes(searchmodules);
+		//search.setTypes(searchmodules);
 
 		search.setRequestCache(false);  //What does this do?
 

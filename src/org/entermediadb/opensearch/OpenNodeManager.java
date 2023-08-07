@@ -85,8 +85,8 @@ import org.opensearch.transport.RemoteTransportException;
 //    }
 //}
 
-public class ElasticNodeManager extends BaseNodeManager implements Shutdownable {
-	protected Log log = LogFactory.getLog(ElasticNodeManager.class);
+public class OpenNodeManager extends BaseNodeManager implements Shutdownable {
+	protected Log log = LogFactory.getLog(OpenNodeManager.class);
 
 	private Node node;
 

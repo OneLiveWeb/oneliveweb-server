@@ -23,7 +23,7 @@ import org.openedit.users.filesystem.XmlUserArchive;
  * @author cburkey
  * 
  */
-public class ElasticGroupSearcher extends BaseElasticSearcher implements
+public class ElasticGroupSearcher extends BaseOpenSearcher implements
 		GroupSearcher
 {
 	private static final Log log = LogFactory.getLog(ElasticGroupSearcher.class);

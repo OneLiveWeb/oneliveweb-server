@@ -5,7 +5,7 @@ import org.entermediadb.asset.search.BaseAssetSearcher;
 import org.entermediadb.asset.util.CSVReader
 import org.entermediadb.asset.util.ImportFile
 import org.entermediadb.asset.util.Row
-import org.entermediadb.opensearch.searchers.BaseElasticSearcher
+import org.entermediadb.opensearch.searchers.BaseOpenSearcher
 import org.entermediadb.opensearch.searchers.ElasticAssetDataConnector
 import org.openedit.Data
 import org.openedit.data.*

@@ -6,7 +6,7 @@ import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.search.aggregations.bucket.histogram.DateHistogramAggregationBuilder;
 import org.opensearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 
-public class ElasticLogSearcher extends BaseElasticSearcher  {
+public class ElasticLogSearcher extends BaseOpenSearcher  {
 
 	
 	/**

@@ -1,5 +1,6 @@
 package org.entermediadb.opensearch.searchers;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -31,8 +32,8 @@ import org.entermediadb.asset.cluster.IdManager;
 import org.entermediadb.data.FullTextLoader;
 import org.entermediadb.location.Position;
 import org.entermediadb.opensearch.ElasticHitTracker;
-import org.entermediadb.opensearch.ElasticNodeManager;
 import org.entermediadb.opensearch.ElasticSearchQuery;
+import org.entermediadb.opensearch.OpenNodeManager;
 import org.entermediadb.opensearch.SearchHitData;
 import org.json.simple.JSONObject;
 import org.openedit.Data;
@@ -57,6 +58,7 @@ import org.openedit.users.User;
 import org.openedit.util.DateStorageUtil;
 import org.openedit.util.IntCounter;
 import org.openedit.util.OutputFiller;
+import org.opensearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.opensearch.action.admin.indices.flush.FlushRequest;
 import org.opensearch.action.admin.indices.flush.FlushResponse;
 import org.opensearch.action.admin.indices.mapping.get.GetMappingsRequest;
@@ -115,7 +117,6 @@ import org.opensearch.search.aggregations.bucket.histogram.DateHistogramAggregat
 import org.opensearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.opensearch.search.aggregations.metrics.AvgAggregationBuilder;
 import org.opensearch.search.aggregations.metrics.SumAggregationBuilder;
-import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.opensearch.search.sort.FieldSortBuilder;
 import org.opensearch.search.sort.SortBuilders;
@@ -127,18 +128,28 @@ import groovy.json.JsonOutput;
 
 
 
-public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
+public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 {
 
-	private static final Log log = LogFactory.getLog(BaseElasticSearcher.class);
+	private static final Log log = LogFactory.getLog(BaseOpenSearcher.class);
 	public static final Pattern VALUEDELMITER = Pattern.compile("\\s*\\|\\s*");
 	protected static final Pattern operators = Pattern.compile("(\\sAND\\s|\\sOR\\s|\\sNOT\\s)");
 	protected static final Pattern andoperators = Pattern.compile("(\\sAND\\s)");
-	protected ElasticNodeManager fieldElasticNodeManager;
+	protected OpenNodeManager fieldOpensearchNodeManager;
+	public OpenNodeManager getOpensearchNodeManager()
+	{
+		return fieldOpensearchNodeManager;
+	}
+
+	public void setOpensearchNodeManager(OpenNodeManager inOpensearchNodeManager)
+	{
+		fieldOpensearchNodeManager = inOpensearchNodeManager;
+	}
 	// protected IntCounter fieldIntCounter;
 	// protected PageManager fieldPageManager;
 	// protected LockManager fieldLockManager;
 	protected boolean fieldAutoIncrementId;
+
 	protected boolean fieldReIndexing;
 	protected boolean fieldCheckVersions;
 	protected boolean fieldRefreshSaves = true;
@@ -242,15 +253,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		fieldRefreshSaves = inRefreshSaves;
 	}
 
-	public ElasticNodeManager getElasticNodeManager()
-	{
-		return fieldElasticNodeManager;
-	}
 
-	public void setElasticNodeManager(ElasticNodeManager inElasticNodeManager)
-	{
-		fieldElasticNodeManager = inElasticNodeManager;
-	}
 
 	public boolean isCheckVersions()
 	{
@@ -569,6 +572,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 	{
 		
 		//TODO:  Sort out new type mappins
+
 //		try
 //		{
 //			boolean alreadyin = getClient().admin().indices().typesExists(new TypesExistsRequest(new String[] { getElasticIndexId() }, getSearchType())).actionGet().isExists();
@@ -592,7 +596,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 
 		if (indexid == null)
 		{
-			indexid = toId(getCatalogId());
+			indexid = toId(getSearchType() + "-" + getCatalogId());
 		}
 		return indexid;
 	}
@@ -647,7 +651,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		XContentBuilder source = buildMapping();
 	
 		
-			log.info(indexid + "/" + getSearchType() + "/_mapping' -d '" + source.toString() + "'");
+			log.info(indexid + "/" + getSearchType() + "/_mapping' -d '" + source.prettyPrint() + "'");
 		
 		// GetMappingsRequest find = new
 		// GetMappingsRequest().types(getSearchType());
@@ -700,6 +704,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 	public void putMapping(AdminClient admin, String indexid, XContentBuilder source)
 	{
 		PutMappingRequest req = Requests.putMappingRequest(indexid);
+		
 		req = req.source(source);
 
 		req.validate();
@@ -717,7 +722,13 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 	{
 		try
 		{
-			XContentBuilder jsonBuilder = XContentFactory.jsonBuilder();
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			XContentBuilder jsonBuilder = XContentFactory.jsonBuilder(out);
+			
+			
+		
+
+			
 			XContentBuilder jsonproperties = jsonBuilder.startObject().startObject(getSearchType());
 			jsonproperties.field("date_detection", "false");
 
@@ -764,7 +775,7 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 //			jsonproperties = jsonproperties.field("store", "true");
 //			jsonproperties = jsonproperties.endObject();
 
-			jsonproperties = buildClusterSyncMappings(jsonproperties);
+			//jsonproperties = buildClusterSyncMappings(jsonproperties);
 
 			for (Iterator i = props.iterator(); i.hasNext();)
 			{
@@ -787,10 +798,10 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 					continue;
 				}
 
-				if (detail.isMultiLanguage())
+				if (detail.isMultiLanguage() || false)
 				{
-					jsonproperties = jsonproperties.startObject(detail.getId() + "_int");
-					jsonproperties = jsonproperties.field("type", "object");
+					jsonproperties.startObject(detail.getId() + "_int");
+					jsonproperties.field("type", "object");
 
 					jsonproperties.startObject("properties");
 					HitTracker languages = getSearcherManager().getList(getCatalogId(), "locale");
@@ -823,30 +834,39 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 					jsonproperties.endObject();
 					jsonproperties.endObject();
 
-					jsonproperties = jsonproperties.startObject(detail.getId());
-					jsonproperties = jsonproperties.field("type", "string");
-					jsonproperties = createExactEnabledField(detail,jsonproperties);
-					jsonproperties = jsonproperties.field("include_in_all", "false");
-					jsonproperties = jsonproperties.endObject();
+					 jsonproperties.startObject(detail.getId());
+					 jsonproperties.field("type", "string");
+					 createExactEnabledField(detail,jsonproperties);
+					 jsonproperties.field("include_in_all", "false");
+					 jsonproperties.endObject();
 
 					continue;
 				}
 
-				jsonproperties = jsonproperties.startObject(detail.getId());
+			jsonproperties.startObject(detail.getId());
 				configureDetail(detail, jsonproperties);
-				jsonproperties = jsonproperties.endObject();
+				 jsonproperties.endObject();
 			}
-			jsonproperties = jsonproperties.endObject();
-			PropertyDetail _parent = getPropertyDetails().getDetail("_parent");
-			if (_parent != null)
-			{
-				jsonproperties = jsonproperties.startObject("_parent");
-				jsonproperties = jsonproperties.field("type", _parent.getListId());
-				jsonproperties = jsonproperties.endObject();
-			}
+			jsonproperties.endObject();
+//			PropertyDetail _parent = getPropertyDetails().getDetail("_parent");
+//			if (_parent != null)
+//			{
+//				jsonproperties = jsonproperties.startObject("_parent");
+//				jsonproperties = jsonproperties.field("type", _parent.getListId());
+//				jsonproperties = jsonproperties.endObject();
+//			}
 			jsonBuilder = jsonproperties.endObject();
-			//String content = jsonproperties.string();
-		//	log.info(getSearchType() + " " + content);
+			jsonBuilder = jsonproperties.endObject();
+
+
+			// ... your content building logic ...
+			jsonBuilder.close();
+			// After building, get the content as string
+			//String content = out.toString("UTF-8");
+			String content = out.toString("UTF-8");
+
+			log.info(content);
+			
 			return jsonproperties;
 		}
 		catch (Throwable ex)
@@ -3365,12 +3385,12 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 		}
 	}
 
-//	public boolean tableExists()
-//	{
-//		boolean used = getClient().admin().indices().typesExists(new TypesExistsRequest(new String[] { toId(getCatalogId()) }, getSearchType())).actionGet().isExists();
-//		return used;
-//
-//	}
+	public boolean tableExists()
+	{
+		boolean used = getClient().admin().indices().exists(new IndicesExistsRequest(toId(getCatalogId() + getSearchType()))).actionGet().isExists();
+		return used;
+
+	}
 	//TODO:  This is a node level task now
 //	@Override
 //	public void reindexInternal() throws OpenEditException
@@ -3495,6 +3515,11 @@ public class BaseElasticSearcher extends BaseSearcher implements FullTextLoader
 			inFields.put(detail.getId(), num);
 		}
 	}
+	
+	public OpenNodeManager getElasticNodeManager() {
+		return fieldOpensearchNodeManager;
+	}
+	
 
 	public void saveJson(Collection inJsonArray)
 	{

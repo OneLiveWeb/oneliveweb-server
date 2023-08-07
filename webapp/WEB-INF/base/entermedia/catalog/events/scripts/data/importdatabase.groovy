@@ -6,7 +6,7 @@ import org.entermediadb.asset.MediaArchive
 import org.entermediadb.asset.util.CSVReader
 import org.entermediadb.asset.util.ImportFile
 import org.entermediadb.asset.util.Row
-import org.entermediadb.opensearch.ElasticNodeManager
+import org.entermediadb.opensearch.OpenNodeManager
 import org.openedit.Data
 import org.openedit.OpenEditException
 import org.openedit.data.*
@@ -20,7 +20,7 @@ public void init()
 	MediaArchive mediaarchive = context.getPageValue("mediaarchive");
 	String catalogid = context.findValue("catalogid");
 
-	ElasticNodeManager nodeManager = mediaarchive.getNodeManager();
+	OpenNodeManager nodeManager = mediaarchive.getNodeManager();
 	Date date = new Date();
 	String tempindex =  nodeManager.toId(mediaarchive.getCatalogId().replaceAll("_", "") +  date.getTime());
 	nodeManager.prepareIndex(tempindex);

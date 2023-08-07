@@ -4,7 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openedit.hittracker.HitTracker;
 
-public class LockSearcher extends BaseElasticSearcher 
+public class LockSearcher extends BaseOpenSearcher 
 {
 	private static final Log log = LogFactory.getLog(LockSearcher.class);
 

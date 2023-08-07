@@ -17,7 +17,7 @@ import org.entermediadb.asset.MediaArchive
 import org.entermediadb.asset.util.CSVReader
 import org.entermediadb.asset.util.ImportFile
 import org.entermediadb.asset.util.Row
-import org.entermediadb.opensearch.ElasticNodeManager
+import org.entermediadb.opensearch.OpenNodeManager
 import org.entermediadb.opensearch.searchers.OpensearchListSearcher
 import org.entermediadb.workspace.WorkspaceManager
 import org.openedit.Data
@@ -141,7 +141,7 @@ public void restore(MediaArchive mediaarchive, Data site, Data inSnap, boolean c
 
 	String catalogid = mediaarchive.getCatalogId();
 
-	ElasticNodeManager nodeManager = mediaarchive.getNodeManager();
+	OpenNodeManager nodeManager = mediaarchive.getNodeManager();
 	Date date = new Date();
 	String tempindex =  nodeManager.toId(mediaarchive.getCatalogId().replaceAll("_", "") +  date.getTime());
 	if( !configonly )
@@ -577,7 +577,7 @@ public void importJson(Data site, MediaArchive mediaarchive, String searchtype, 
 	if(searcher instanceof OpensearchListSearcher){
 		return;
 	}
-	ElasticNodeManager manager = (ElasticNodeManager)mediaarchive.getNodeManager();
+	OpenNodeManager manager = (OpenNodeManager)mediaarchive.getNodeManager();
 	
 	BulkProcessor processor = manager.getBulkProcessor();
 	

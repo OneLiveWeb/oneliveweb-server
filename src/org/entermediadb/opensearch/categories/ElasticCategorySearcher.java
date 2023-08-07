@@ -13,7 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import org.entermediadb.asset.Category;
 import org.entermediadb.asset.xmldb.CategorySearcher;
 import org.entermediadb.asset.xmldb.XmlCategoryArchive;
-import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
+import org.entermediadb.opensearch.searchers.BaseOpenSearcher;
 import org.openedit.Data;
 import org.openedit.OpenEditException;
 import org.openedit.cache.CacheManager;
@@ -23,7 +23,7 @@ import org.openedit.users.User;
 import org.openedit.util.PathUtilities;
 import org.opensearch.action.get.GetResponse;
 
-public class ElasticCategorySearcher extends BaseElasticSearcher implements CategorySearcher//, Reloadable
+public class ElasticCategorySearcher extends BaseOpenSearcher implements CategorySearcher//, Reloadable
 {
 	private static final Log log = LogFactory.getLog(ElasticCategorySearcher.class);
 	protected XmlCategoryArchive fieldXmlCategoryArchive;

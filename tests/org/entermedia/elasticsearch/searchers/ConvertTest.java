@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.entermediadb.asset.BaseEnterMediaTest;
-import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
+import org.entermediadb.opensearch.searchers.BaseOpenSearcher;
 import org.openedit.Data;
 import org.openedit.hittracker.SearchQuery;
 import org.openedit.util.DateStorageUtil;
@@ -17,7 +17,7 @@ public class ConvertTest extends BaseEnterMediaTest
 	public void testCreateAndSearch() throws Exception
 	{
 		
-		BaseElasticSearcher convertSearcher = (BaseElasticSearcher) getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "conversiontask");
+		BaseOpenSearcher convertSearcher = (BaseOpenSearcher) getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "conversiontask");
 
 		Data newone = convertSearcher.createNewData();
 		newone.setProperty("submitted", DateStorageUtil.getStorageUtil().formatForStorage(new Date()));
@@ -49,7 +49,7 @@ public class ConvertTest extends BaseEnterMediaTest
 	public void testLargeIndex() throws Exception
 	{
 		
-		BaseElasticSearcher convertSearcher = (BaseElasticSearcher) getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "conversiontask");
+		BaseOpenSearcher convertSearcher = (BaseOpenSearcher) getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "conversiontask");
 		List data = new ArrayList();
 		for (int i = 0; i < 10000; i++)
 		{

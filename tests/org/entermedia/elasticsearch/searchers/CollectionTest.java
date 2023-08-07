@@ -6,7 +6,7 @@ import java.util.List;
 import org.entermediadb.asset.Asset;
 import org.entermediadb.asset.BaseEnterMediaTest;
 import org.entermediadb.asset.EnterMedia;
-import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
+import org.entermediadb.opensearch.searchers.BaseOpenSearcher;
 import org.entermediadb.projects.ProjectManager;
 import org.junit.Test;
 import org.openedit.Data;
@@ -20,7 +20,7 @@ public class CollectionTest  extends BaseEnterMediaTest
 {
 	public void testVerifyConfiguration()
 	{
-		BaseElasticSearcher searcher = (BaseElasticSearcher)getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "librarycollectionasset");
+		BaseOpenSearcher searcher = (BaseOpenSearcher)getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "librarycollectionasset");
 		assertNotNull("asset searcher is NULL!", searcher);
 	}
 	public void testCollectionEdit() throws Exception
@@ -78,7 +78,7 @@ public class CollectionTest  extends BaseEnterMediaTest
 		data.setProperty("library", "library101");
 		lcsearcher.saveData(data, null);
 
-		BaseElasticSearcher lcasearcher = (BaseElasticSearcher)getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "librarycollectionasset");
+		BaseOpenSearcher lcasearcher = (BaseOpenSearcher)getMediaArchive().getSearcherManager().getSearcher("entermedia/catalogs/testcatalog", "librarycollectionasset");
 		lcasearcher.reIndexAll();
 		Data lca = lcasearcher.createNewData();
 		lca.setProperty("librarycollection", "libraryCollection101");

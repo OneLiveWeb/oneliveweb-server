@@ -17,7 +17,7 @@ import org.entermediadb.asset.CompositeAsset;
 import org.entermediadb.asset.MediaArchive;
 import org.entermediadb.asset.xmldb.CategorySearcher;
 import org.entermediadb.data.FullTextLoader;
-import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
+import org.entermediadb.opensearch.searchers.BaseOpenSearcher;
 import org.entermediadb.opensearch.searchers.ElasticAssetDataConnector;
 import org.json.simple.JSONObject;
 import org.openedit.Data;
@@ -560,9 +560,9 @@ public class BaseAssetSearcher extends BaseSearcher implements AssetSearcher, Fu
 	
 	public String getExistingMapping()
 	{
-		if( getDataConnector() instanceof BaseElasticSearcher)
+		if( getDataConnector() instanceof BaseOpenSearcher)
 		{
-			return ((BaseElasticSearcher)getDataConnector()).getExistingMapping();			
+			return ((BaseOpenSearcher)getDataConnector()).getExistingMapping();			
 		}
 		return "not implemented";
 	}

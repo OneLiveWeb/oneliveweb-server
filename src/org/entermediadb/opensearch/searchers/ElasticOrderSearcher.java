@@ -7,7 +7,7 @@ import org.openedit.Data;
 import org.openedit.data.PropertyDetails;
 import org.openedit.users.User;
 
-public class ElasticOrderSearcher extends BaseElasticSearcher implements OrderSearcher
+public class ElasticOrderSearcher extends BaseOpenSearcher implements OrderSearcher
 {
 	
 	protected OrderManager fieldOrderManager;

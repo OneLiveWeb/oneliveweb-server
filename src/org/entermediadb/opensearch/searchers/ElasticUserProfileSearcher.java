@@ -15,7 +15,7 @@ import org.openedit.users.UserManager;
 /**
  *
  */
-public class ElasticUserProfileSearcher extends BaseElasticSearcher
+public class ElasticUserProfileSearcher extends BaseOpenSearcher
 {
 	private static final Log log = LogFactory.getLog(ElasticUserProfileSearcher.class);
 	protected UserManager fieldUserManager;

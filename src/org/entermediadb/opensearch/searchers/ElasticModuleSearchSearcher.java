@@ -19,7 +19,7 @@ import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.index.query.TermQueryBuilder;
 
-public class ElasticModuleSearchSearcher extends BaseElasticSearcher
+public class ElasticModuleSearchSearcher extends BaseOpenSearcher
 {
 	private static final Log log = LogFactory.getLog(ElasticModuleSearchSearcher.class);
 

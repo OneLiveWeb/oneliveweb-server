@@ -12,7 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.entermediadb.asset.Category;
 import org.entermediadb.asset.MediaArchive;
-import org.entermediadb.opensearch.searchers.BaseElasticSearcher;
+import org.entermediadb.opensearch.searchers.BaseOpenSearcher;
 import org.openedit.Data;
 import org.openedit.ModuleManager;
 import org.openedit.MultiValued;
@@ -514,9 +514,9 @@ public class UserProfileManager
 			//archive.getCacheManager().remove("userprofile", inUserProfile.getUserId());
 			archive.getCacheManager().put("userprofile", inUserProfile.getUserId(),inUserProfile);
 
-			if( searcher instanceof BaseElasticSearcher) //TODO: Add method to Searcher
+			if( searcher instanceof BaseOpenSearcher) //TODO: Add method to Searcher
 			{
-				BaseElasticSearcher cachedsearcher = (BaseElasticSearcher)searcher;
+				BaseOpenSearcher cachedsearcher = (BaseOpenSearcher)searcher;
 				cachedsearcher.setIndexId(Long.parseLong(oldindex));
 			}
 		}
