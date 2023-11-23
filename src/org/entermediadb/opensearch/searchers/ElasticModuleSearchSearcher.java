@@ -38,7 +38,7 @@ public class ElasticModuleSearchSearcher extends BaseOpenSearcher
 			searchmodules = new ArrayList(searchmodules);
 			searchmodules.remove("asset");
 		}
-		SearchRequestBuilder search = getClient().prepareSearch(toId(getCatalogId()));
+		SearchRequestBuilder search = getClient().prepareSearch(toIndexId());
 		search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
 		
 		
@@ -80,8 +80,7 @@ public class ElasticModuleSearchSearcher extends BaseOpenSearcher
 		BoolQueryBuilder terms = buildTerms(inQuery);
 		
 		//search.setTypes((String[])searchmodules.toArray(new String[searchmodules.size()]));
-		QueryBuilder queryBuilder = QueryBuilders.termQuery("olwtype", getSearchType());
-		terms.must(queryBuilder);
+		
 		
 
 		addFacets(inQuery,search);
@@ -121,7 +120,7 @@ public class ElasticModuleSearchSearcher extends BaseOpenSearcher
 			long size = hits.size(); // order is important
 			String json = search.toString();
 			long end = System.currentTimeMillis() - start;
-			log.info(toId(getCatalogId()) + "/" + getSearchType() + "/_search' -d '" + json + "' \n" + size + " hits in: " + (double) end / 1000D + " seconds]");
+			log.info(toIndexId() + "/" + getSearchType() + "/_search' -d '" + json + "' \n" + size + " hits in: " + (double) end / 1000D + " seconds]");
 		}
 		
 //		hits.size(); //load it up

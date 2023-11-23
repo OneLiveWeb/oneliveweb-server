@@ -64,7 +64,7 @@ public class ElasticAssetDataConnector extends ElasticXmlFileSearcher implements
 	public void deleteFromIndex(String inId)
 	{
 		// TODO Auto-generated method stub
-		DeleteRequestBuilder delete = getClient().prepareDelete(toId(getCatalogId()),  inId);
+		DeleteRequestBuilder delete = getClient().prepareDelete(toIndexId(),  inId);
 		delete.execute().actionGet();
 		// delete()
 	}
@@ -438,7 +438,7 @@ public class ElasticAssetDataConnector extends ElasticXmlFileSearcher implements
 	{
 		if (inField.equals("id") || inField.equals("_id"))
 		{
-			GetResponse response = getClient().prepareGet(toId(getCatalogId()),  inValue).execute().actionGet();
+			GetResponse response = getClient().prepareGet(toIndexId(),  inValue).execute().actionGet();
 			if (!response.isExists())
 			{
 				return null;
@@ -457,7 +457,7 @@ public class ElasticAssetDataConnector extends ElasticXmlFileSearcher implements
 		if (inField.equals("sourcepath") || inField.equals("_sourcepath"))
 		{
 
-			SearchRequestBuilder search = getClient().prepareSearch(toId(getCatalogId()));
+			SearchRequestBuilder search = getClient().prepareSearch(toIndexId());
 
 			search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
 			

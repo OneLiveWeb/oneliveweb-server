@@ -119,6 +119,7 @@ public class OpensearchListSearcher extends BaseOpenSearcher implements Reloadab
 	public synchronized void reIndexAll() throws OpenEditException
 	{		
 		//setReIndexing(false);
+		log.info("REindexing " + getSearchType());
 		if( isReIndexing())
 		{
 			return;
@@ -161,6 +162,8 @@ public class OpensearchListSearcher extends BaseOpenSearcher implements Reloadab
 		{
 			setReIndexing(false);
 		}
+		log.info("REindexing Done" + getSearchType());
+
 	}
 
 	public void restoreSettings()

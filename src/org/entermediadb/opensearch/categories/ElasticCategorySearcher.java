@@ -371,7 +371,7 @@ public class ElasticCategorySearcher extends BaseOpenSearcher implements Categor
 
 	protected Category searchCategory(String inValue)
 	{
-		GetResponse response = getClient().prepareGet(toId(getCatalogId()),  inValue).execute().actionGet();
+		GetResponse response = getClient().prepareGet(toIndexId(),  inValue).execute().actionGet();
 		if( response.isExists() )
 		{
 			Map source = response.getSource();

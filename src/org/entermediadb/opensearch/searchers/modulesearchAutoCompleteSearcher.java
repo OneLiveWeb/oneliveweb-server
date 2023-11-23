@@ -29,7 +29,7 @@ public class modulesearchAutoCompleteSearcher extends BaseOpenSearcher
 	{
 		String[] searchmodules = listSearchModules();
 		
-		SearchRequestBuilder search = getClient().prepareSearch(toId(getCatalogId()));
+		SearchRequestBuilder search = getClient().prepareSearch(toIndexId());
 		search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
 		
 		//search.setTypes(searchmodules);

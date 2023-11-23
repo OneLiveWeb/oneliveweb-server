@@ -609,7 +609,7 @@ public class OpenNodeManager extends BaseNodeManager implements Shutdownable {
 		if (!res.isExists()) {
 			InputStream in = null;
 			try {
-				Page yaml = getPageManager().getPage("/system/configuration/elasticindex.yaml");
+				Page yaml = getPageManager().getPage("/system/configuration/opensearch-index.yaml");
 				in = yaml.getInputStream();
 				Builder settingsBuilder = Settings.builder().loadFromStream(yaml.getName(), in, true);
 				for (Iterator iterator = getLocalNode().getProperties().keySet().iterator(); iterator.hasNext();) {

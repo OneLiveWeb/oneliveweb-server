@@ -2,6 +2,7 @@ package org.entermediadb.opensearch.searchers;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
@@ -52,12 +53,14 @@ import org.openedit.hittracker.HitTracker;
 import org.openedit.hittracker.SearchQuery;
 import org.openedit.hittracker.Term;
 import org.openedit.modules.translations.LanguageMap;
+import org.openedit.page.Page;
 import org.openedit.page.manage.PageManager;
 import org.openedit.repository.ContentItem;
 import org.openedit.users.User;
 import org.openedit.util.DateStorageUtil;
 import org.openedit.util.IntCounter;
 import org.openedit.util.OutputFiller;
+import org.opensearch.action.admin.indices.create.CreateIndexRequest;
 import org.opensearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.opensearch.action.admin.indices.flush.FlushRequest;
 import org.opensearch.action.admin.indices.flush.FlushResponse;
@@ -88,6 +91,8 @@ import org.opensearch.cluster.metadata.MappingMetadata;
 import org.opensearch.common.collect.ImmutableOpenMap;
 import org.opensearch.common.geo.GeoDistance;
 import org.opensearch.common.geo.GeoPoint;
+import org.opensearch.common.settings.Settings;
+import org.opensearch.common.settings.Settings.Builder;
 import org.opensearch.common.unit.ByteSizeUnit;
 import org.opensearch.common.unit.ByteSizeValue;
 import org.opensearch.common.unit.TimeValue;
@@ -304,10 +309,12 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		return getElasticNodeManager().getClient();
 	}
 
-	protected String toId(String inId)
+	
+	
+	
+	protected String toIndexId()
 	{
-		String id = inId.replace('/', '_');
-		return id;
+		return getElasticIndexId();
 	}
 
 	public HitTracker search(SearchQuery inQuery)
@@ -342,7 +349,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 				throw new OpenEditException("Elastic search requires elastic query");
 			}
 			long start = System.currentTimeMillis();
-			SearchRequestBuilder search = getClient().prepareSearch(toId(getCatalogId()));
+			SearchRequestBuilder search = getClient().prepareSearch(toIndexId());
 			search.setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
 
 			
@@ -355,19 +362,17 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 			BoolQueryBuilder terms = buildTerms(inQuery);
 			
 			//Replace type with a custom field:
-			QueryBuilder queryBuilder = QueryBuilders.termQuery("olwtype", getSearchType());
-			terms.must(queryBuilder);
 			
 			
-			if(!inQuery.isIncludeDeleted()) 
-			{
-				TermQueryBuilder deleted = QueryBuilders.termQuery("emrecordstatus.recorddeleted", true);
-				terms.mustNot(deleted);
-			}
+//			if(!inQuery.isIncludeDeleted()) 
+//			{
+//				TermQueryBuilder deleted = QueryBuilders.termQuery("emrecordstatus.recorddeleted", true);
+//				terms.mustNot(deleted);
+//			}
 			
 			search.setQuery(terms);
 			// search.
-			addSorts(inQuery, search);
+			//addSorts(inQuery, search);
 			addFacets(inQuery, search);
 
 			addSearcherTerms(inQuery, search);
@@ -383,12 +388,14 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 			hits.setIndexId(getIndexId());
 			hits.setSearcher(this);
 			hits.setSearchQuery(inQuery);
-			if (getSearcherManager().getShowSearchLogs(getCatalogId()))
+			if (getSearcherManager().getShowSearchLogs(getCatalogId()) || true)
 			{
+				log.info(toIndexId() + "/" + getSearchType() + "/_search' -d '" + json );
+
 				long size = hits.size(); // order is important
 				json = search.toString();
 				long end = System.currentTimeMillis() - start;
-				log.info(toId(getCatalogId()) + "/" + getSearchType() + "/_search' -d '" + json + "' \n" + size + " hits in: " + (double) end / 1000D + " seconds]");
+				log.info(toIndexId() + "/" + getSearchType() + "/_search' -d '" + json + "' \n" + size + " hits in: " + (double) end / 1000D + " seconds]");
 			}
 			return hits;
 		}
@@ -396,7 +403,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		{
 			if (json != null)
 			{
-				log.error("Could not query: " + toId(getCatalogId()) + "/" + getSearchType() + "/_search' -d '" + json + "' sort by " + inQuery.getSorts(), ex);
+				log.error("Could not query: " + toIndexId() + "/" + getSearchType() + "/_search' -d '" + json + "' sort by " + inQuery.getSorts(), ex);
 			}
 
 			if (ex instanceof OpenEditException)
@@ -596,7 +603,8 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 
 		if (indexid == null)
 		{
-			indexid = toId(getSearchType() + "-" + getCatalogId());
+			indexid = getCatalogId() + "-" + getSearchType();
+			indexid = indexid.replaceAll("/", "-");
 		}
 		return indexid;
 	}
@@ -634,6 +642,46 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 
 		String indexid = getElasticIndexId();
 
+		
+
+	    // Step 1: Check if the index exists
+	    boolean indexExists = admin.indices().exists(new IndicesExistsRequest(indexid)).actionGet().isExists();
+
+	    // Step 2: Create index if it does not exist
+	    if (!indexExists) {
+	        try {
+	            CreateIndexRequest createIndexRequest = new CreateIndexRequest(indexid);
+
+	            // Load YAML configuration
+	            Page yaml = getPageManager().getPage("/system/configuration/opensearch-index.yaml");
+	            InputStream in = yaml.getInputStream();
+	            Builder settingsBuilder = Settings.builder().loadFromStream(yaml.getName(), in, true);
+
+	            // Apply additional settings from local node properties
+//	            for (Iterator iterator = getLocalNode().getProperties().keySet().iterator(); iterator.hasNext();) {
+//	                String key = (String) iterator.next();
+//	                if (key.startsWith("index.")) {
+//	                    String val = getLocalNode().getSetting(key);
+//	                    settingsBuilder.put(key, val);
+//	                }
+//	            }
+
+	            // Apply the settings to the CreateIndexRequest
+	            createIndexRequest.settings(settingsBuilder.build());
+
+	            // Define mappings for the new index
+
+	            // Create the index
+	            admin.indices().create(createIndexRequest).actionGet();
+	        } catch (Exception e) {
+	            log.error("Failed to create index: " + indexid, e);
+	            return false;
+	        }
+	    }
+
+		
+		
+		
 		List<PropertyDetails> dependson = getPropertyDetailsArchive().findChildTables();
 		for (Iterator iterator = dependson.iterator(); iterator.hasNext();)
 		{
@@ -649,7 +697,6 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		}
 
 		XContentBuilder source = buildMapping();
-	
 		
 			log.info(indexid + "/" + getSearchType() + "/_mapping' -d '" + source.prettyPrint() + "'");
 		
@@ -670,7 +717,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		{
 			// https://www.elastic.co/guide/en/elasticsearch/guide/current/scan-scroll.html
 			// https://github.com/jprante/elasticsearch-knapsack
-			log.info("Could not put mapping over existing mapping.", ex);
+			log.info("Could not put mapping over existing mapping." + getSearchType(), ex);
 			getElasticNodeManager().addMappingError(getSearchType(), ex.getMessage());
 			//throw new OpenEditException("Mapping was not saved " + getSearchType(),ex);
 			return false;
@@ -729,13 +776,13 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		
 
 			
-			XContentBuilder jsonproperties = jsonBuilder.startObject().startObject(getSearchType());
-			jsonproperties.field("date_detection", "false");
+			XContentBuilder jsonproperties = jsonBuilder.startObject().field("date_detection", "false").startObject("properties");
+			
 
 			//"_all" : {"enabled" : false},
-			jsonproperties.startObject("_all").field("enabled", "false").endObject();
+		//	jsonproperties.startObject("_all").field("enabled", "false").endObject();
 
-			jsonproperties = jsonproperties.startObject("properties");
+			//jsonproperties = jsonproperties.startObject("properties");
 
 			List props = getPropertyDetails().findIndexProperties();
 			//List objectarrays = new ArrayList();
@@ -762,7 +809,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 			// }
 
 //			jsonproperties = jsonproperties.startObject("mastereditclusterid");
-//			jsonproperties = jsonproperties.field("type", "string");
+//			jsonproperties = jsonproperties.field("type", "text");
 //			jsonproperties = jsonproperties.field("index", "not_analyzed");
 //			jsonproperties = jsonproperties.field("include_in_all", "false");
 //			jsonproperties = jsonproperties.field("store", "false");
@@ -812,7 +859,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 
 						jsonproperties.startObject(id);
 						String analyzer = locale.get("analyzer");
-						jsonproperties.field("type", "string");
+						jsonproperties.field("type", "text");
 						if (detail.isAnalyzed())
 						{
 							jsonproperties = createExactEnabledField(detail,jsonproperties);
@@ -835,9 +882,15 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 					jsonproperties.endObject();
 
 					 jsonproperties.startObject(detail.getId());
-					 jsonproperties.field("type", "string");
+					 
+					 if(detail.isAnalyzed()) {
+						 jsonproperties.field("type", "text");
+					 }
+					 else {
+						 jsonproperties.field("type", "keyword");
+					 }
 					 createExactEnabledField(detail,jsonproperties);
-					 jsonproperties.field("include_in_all", "false");
+					 //jsonproperties.field("include_in_all", "false");
 					 jsonproperties.endObject();
 
 					continue;
@@ -856,7 +909,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 //				jsonproperties = jsonproperties.endObject();
 //			}
 			jsonBuilder = jsonproperties.endObject();
-			jsonBuilder = jsonproperties.endObject();
+			
 
 
 			// ... your content building logic ...
@@ -886,12 +939,12 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		jsonproperties.startObject("emrecordstatus").field("type", "object");
 		jsonproperties.startObject("properties");
 
-		jsonproperties.startObject("mastereditclusterid").field("type", "string").field("index", "not_analyzed").field("include_in_all", "false").field("store", "false").endObject();
-		jsonproperties.startObject("masterrecordmodificationdate").field("include_in_all", "false").field("type", "date").field("store", "true").endObject();
+		jsonproperties.startObject("mastereditclusterid").field("type", "text").field("store", "false").endObject();
+		jsonproperties.startObject("masterrecordmodificationdate").field("type", "date").field("store", "true").endObject();
 
-		jsonproperties.startObject("lastmodifiedclusterid").field("type", "string").field("index", "not_analyzed").field("include_in_all", "false").field("store", "false").endObject();
+		jsonproperties.startObject("lastmodifiedclusterid").field("type", "text").field("store", "false").endObject();
 		jsonproperties.startObject("recordmodificationdate").field("include_in_all", "false").field("type", "date").field("store", "true").endObject();
-		jsonproperties.startObject("recorddeleted").field("include_in_all", "false").field("type", "boolean").field("store", "false").endObject();
+		jsonproperties.startObject("recorddeleted").field("type", "boolean").field("store", "false").endObject();
 
 		
 		
@@ -908,8 +961,8 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		{
 			String analyzer = "lowersnowball";
 			jsonproperties = jsonproperties.field("analyzer", analyzer);
-			jsonproperties = jsonproperties.field("type", "string");
-			jsonproperties = jsonproperties.field("index", "analyzed");
+			jsonproperties = jsonproperties.field("type", "text");
+
 			jsonproperties = jsonproperties.field("include_in_all", "false");
 			return;
 		}
@@ -985,13 +1038,13 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 			}
 			else
 			{
-				jsonproperties = jsonproperties.field("type", "string");
+				jsonproperties = jsonproperties.field("type", "text");
 			}
 			//TODO: enable sort on list fields. if exact field is sortable add sort subfield with the actual lookedup name value?
 		}
 		else
 		{
-			jsonproperties = jsonproperties.field("type", "string");
+			jsonproperties = jsonproperties.field("type", "text");
 			if (detail.isAnalyzed())
 			{
 				jsonproperties = createExactEnabledField(detail, jsonproperties);
@@ -1000,25 +1053,21 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		}
 
 		// Now determine index
-		String indextype = detail.get("indextype");
+//		String indextype = detail.get("indextype");
+//
+//		if (indextype == null)
+//		{
+//			if (!detail.isAnalyzed())
+//			{
+//				indextype = "not_analyzed";
+//			}
+//		}
+//		if (indextype != null)
+//		{
+//			jsonproperties = jsonproperties.field("index", indextype);
+//		}
 
-		if (indextype == null)
-		{
-			if (!detail.isAnalyzed())
-			{
-				indextype = "not_analyzed";
-			}
-		}
-		if (indextype != null)
-		{
-			jsonproperties = jsonproperties.field("index", indextype);
-		}
-
-		jsonproperties = jsonproperties.field("include_in_all", "false"); // Do
-																			// not
-																			// use.
-																			// Use
-																			// _description
+	
 
 		String analyzer = detail.get("analyzer");
 		if (analyzer != null)
@@ -1039,8 +1088,8 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 	{
 		jsonproperties.startObject("fields");
 		jsonproperties.startObject("exact");
-		jsonproperties = jsonproperties.field("type", "string");
-		jsonproperties = jsonproperties.field("index", "not_analyzed");
+		jsonproperties = jsonproperties.field("type", "keyword");
+		
 		if (!detail.getId().contains("path"))
 		{
 			jsonproperties = jsonproperties.field("ignore_above", 256);
@@ -1048,10 +1097,8 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		jsonproperties.endObject();
 
 		jsonproperties.startObject("sort");
-		jsonproperties = jsonproperties.field("type", "string");
-		jsonproperties = jsonproperties.field("index", "analyzed");
-		jsonproperties = jsonproperties.field("analyzer", "tags");
-		jsonproperties = jsonproperties.field("ignore_above", 256);
+		jsonproperties = jsonproperties.field("type", "keyword");
+		//jsonproperties = jsonproperties.field("analyzer", "tags");
 		jsonproperties.endObject();
 
 		jsonproperties.endObject();
@@ -2965,7 +3012,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		//We should not do this as much for some tables
 		String id = inData.getId();
 		//log.info(id.length());
-		DeleteRequestBuilder delete = getClient().prepareDelete(toId(getCatalogId()), id);
+		DeleteRequestBuilder delete = getClient().prepareDelete(toIndexId(), id);
 //		if (inData.get("_parent") != null)
 //		{
 //			delete.setParent(inData.get("_parent"));
@@ -3033,7 +3080,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 
 	protected boolean flushChanges()
 	{
-		FlushRequest req = Requests.flushRequest(toId(getCatalogId())); //To The disk drive
+		FlushRequest req = Requests.flushRequest(toIndexId()); //To The disk drive
 		FlushResponse res = getClient().admin().indices().flush(req).actionGet();
 		if (res.getSuccessfulShards() > 0)
 		{
@@ -3048,7 +3095,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		{
 			if (getPropertyDetails().getDetail("_parent") == null) //? what is this for? routing?
 			{
-				GetResponse response = getClient().prepareGet(toId(getCatalogId()),  inValue).execute().actionGet();
+				GetResponse response = getClient().prepareGet(toIndexId(),  inValue).execute().actionGet();
 				if (response.isExists())
 				{
 					Map source = response.getSource();
@@ -3387,7 +3434,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 
 	public boolean tableExists()
 	{
-		boolean used = getClient().admin().indices().exists(new IndicesExistsRequest(toId(getCatalogId() + getSearchType()))).actionGet().isExists();
+		boolean used = getClient().admin().indices().exists(new IndicesExistsRequest(toIndexId())).actionGet().isExists();
 		return used;
 
 	}
