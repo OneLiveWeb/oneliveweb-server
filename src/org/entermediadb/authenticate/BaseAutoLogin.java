@@ -78,7 +78,7 @@ public abstract class BaseAutoLogin implements AutoLoginProvider
 				String value = getCookieEncryption().getEnterMediaKey(inUser);  ///TODO Change expiration to be 30 days for keys?
 				Cookie cookie = new Cookie(name, value);
 				
-				Data age  = getSearcherManager().getCachedData("system", "systemsettings", "cookie_expiration_age");
+				Data age  =null;// getSearcherManager().getCachedData("system", "systemsettings", "cookie_expiration_age");
 				int maxage = Integer.MAX_VALUE;
 				if( age != null && age.get("value") != null && !age.get("value").isEmpty())
 				{

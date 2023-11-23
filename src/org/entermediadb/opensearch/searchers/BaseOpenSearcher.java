@@ -604,7 +604,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		if (indexid == null)
 		{
 			indexid = getCatalogId() + "-" + getSearchType();
-			indexid = indexid.replaceAll("/", "-");
+			indexid = indexid.replaceAll("/", "-").toLowerCase();
 		}
 		return indexid;
 	}
@@ -943,7 +943,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		jsonproperties.startObject("masterrecordmodificationdate").field("type", "date").field("store", "true").endObject();
 
 		jsonproperties.startObject("lastmodifiedclusterid").field("type", "text").field("store", "false").endObject();
-		jsonproperties.startObject("recordmodificationdate").field("include_in_all", "false").field("type", "date").field("store", "true").endObject();
+		jsonproperties.startObject("recordmodificationdate").field("type", "date").field("store", "true").endObject();
 		jsonproperties.startObject("recorddeleted").field("type", "boolean").field("store", "false").endObject();
 
 		
@@ -963,7 +963,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 			jsonproperties = jsonproperties.field("analyzer", analyzer);
 			jsonproperties = jsonproperties.field("type", "text");
 
-			jsonproperties = jsonproperties.field("include_in_all", "false");
+		//	jsonproperties = jsonproperties.field("include_in_all", "false");
 			return;
 		}
 
@@ -2381,7 +2381,11 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 			{
 				builder = getClient().prepareIndex(catid);
 			}
-
+			if(data.getId() != null) {
+				builder.setId(data.getId());
+			}
+			
+			
 //			PropertyDetail parent = details.getDetail("_parent");
 //			if (parent != null)
 //			{
@@ -2897,6 +2901,8 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 			{
 				inContent.field("badge", badges);
 			}
+			
+		
 			addCustomFields(inContent, inData);
 		}
 
@@ -3089,54 +3095,7 @@ public class BaseOpenSearcher extends BaseSearcher implements FullTextLoader
 		return false;
 	}
 
-	public Object searchByField(String inField, String inValue)
-	{
-		if (inField.equals("id") || inField.equals("_id"))
-		{
-			if (getPropertyDetails().getDetail("_parent") == null) //? what is this for? routing?
-			{
-				GetResponse response = getClient().prepareGet(toIndexId(),  inValue).execute().actionGet();
-				if (response.isExists())
-				{
-					Map source = response.getSource();
-					if( isDeleted(source))
-					{
-						return null;
-					}
-					
-					Data data = null;
-					if (getNewDataName() != null)
-					{
-						data = createNewData();
-						// copyData(data, typed);
-						updateData(source, data);
-					}
-					else
-					{
-						SearchHitData sdata = new SearchHitData(this);
-						sdata.setPropertyDetails(getPropertyDetails());
-						sdata.setSearchData(source);
-						data = sdata;
-						// data.setProperties(response.getSource());
-						//updateData(response.getSource(), data);
-					}
-					// log.info(response.getSourceAsString());
-					data.setId(inValue);
-					// data.setName(data.getName());
-					// data.setSourcePath(data.getSourcePath());
-
-					if (response.getVersion() > -1)
-					{
-						data.setValue(".version", response.getVersion());
-					}
-					return loadData(data);
-				}
-				return null;
-			}
-		}
-		return super.searchByField(inField, inValue);
-	}
-
+	
 	protected boolean isDeleted(Map source)
 	{
 		Map  status  = (Map)source.get("emrecordstatus");
